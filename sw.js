@@ -3,12 +3,13 @@
    Cache-first strategy for full offline play
 ══════════════════════════════════════════ */
 const CACHE_NAME = 'dptb-v1';
+const BASE = '/dont-push-this-button';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/manifest.json',
+  BASE + '/icons/icon-192.png',
+  BASE + '/icons/icon-512.png',
 ];
 
 /* Pre-cache on install */

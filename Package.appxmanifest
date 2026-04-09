@@ -49,7 +49,7 @@
   <Applications>
     <Application
       Id="App"
-      StartPage="REPLACE_WITH_YOUR_HOSTED_URL">
+      StartPage="https://thanhdh2090.github.io/dont-push-this-button/">
 
       <uap:VisualElements
         DisplayName="Don't Push This Button"
