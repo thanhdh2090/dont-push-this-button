@@ -1,6 +1,6 @@
 {
   "name": "Don't Push This Button",
-  "short_name": "Don't Push",
+  "short_name": "Don't Push This Button",
   "description": "A psychological test disguised as a game. One rule: do not press the red button.",
   "start_url": "/dont-push-this-button/",
   "scope": "/dont-push-this-button/",
