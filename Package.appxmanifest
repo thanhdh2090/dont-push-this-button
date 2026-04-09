@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Microsoft Store Package Manifest
-  Package Identity  : Aragorn102.DontPushthisButton
+  Package Identity  : Aragorn102.DontTouchThisButton
   Publisher         : CN=1DEBC1BC-F7E2-41EF-AD3E-0C5D0B5E5C65
-  PFN               : Aragorn102.DontPushthisButton_0a6qk2rwrn62y
-  Store ID          : 9NDWXBSFNFBV
-
-  BEFORE PACKAGING:
-    Replace REPLACE_WITH_YOUR_HOSTED_URL below with your actual hosted URL.
-    Example: https://yourusername.github.io/dont-push-this-button
+  PFN               : Aragorn102.DontTouchThisButton_0a6qk2rwrn62y
+  Store ID          : 9NDBM5R5SZ51
+  Store URL         : https://apps.microsoft.com/detail/9NDBM5R5SZ51
+  MSA App Id        : 1236b927-1df6-44c7-8d6d-3a56737979f3
 -->
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
@@ -20,17 +18,17 @@
   IgnorableNamespaces="mp uap uap2 uap3 uap5">
 
   <Identity
-    Name="Aragorn102.DontPushthisButton"
+    Name="Aragorn102.DontTouchThisButton"
     Publisher="CN=1DEBC1BC-F7E2-41EF-AD3E-0C5D0B5E5C65"
     Version="1.0.0.0"
     ProcessorArchitecture="neutral" />
 
   <mp:PhoneIdentity
-    PhoneProductId="f1fd5a41-9bba-4e4a-b5a6-e0bf54c94648"
+    PhoneProductId="1236b927-1df6-44c7-8d6d-3a56737979f3"
     PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
   <Properties>
-    <DisplayName>Don't Push This Button</DisplayName>
+    <DisplayName>Don't Touch This Button</DisplayName>
     <PublisherDisplayName>Aragorn102</PublisherDisplayName>
     <Logo>images\StoreLogo.png</Logo>
   </Properties>
@@ -52,14 +50,14 @@
       StartPage="https://thanhdh2090.github.io/dont-push-this-button/">
 
       <uap:VisualElements
-        DisplayName="Don't Push This Button"
-        Description="A psychological test disguised as a game. One rule: do not press the red button."
+        DisplayName="Don't Touch This Button"
+        Description="A psychological test disguised as a game. One rule: do not touch the red button."
         BackgroundColor="#050505"
         Square150x150Logo="images\Square150x150Logo.png"
         Square44x44Logo="images\Square44x44Logo.png">
 
         <uap:DefaultTile
-          ShortName="Don't Push"
+          ShortName="Don't Touch"
           Wide310x150Logo="images\Wide310x150Logo.png"
           Square310x310Logo="images\LargeTile.png"
           Square71x71Logo="images\SmallTile.png">
