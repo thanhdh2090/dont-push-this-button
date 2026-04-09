@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html><body>
+<canvas id="c"></canvas>
+<script>
+const sizes = [192, 512];
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+
+sizes.forEach(size => {
+  c.width = c.height = size;
+  ctx.fillStyle = '#050505';
+  ctx.fillRect(0, 0, size, size);
+
+  const cx = size/2, cy = size/2, r = size*0.4;
+  const g = ctx.createRadialGradient(cx-r*.28, cy-r*.32, r*.08, cx, cy, r);
+  g.addColorStop(0, '#ff7070');
+  g.addColorStop(.45, '#dc2626');
+  g.addColorStop(.8, '#991b1b');
+  g.addColorStop(1, '#7f1d1d');
+  ctx.shadowBlur = size*.22;
+  ctx.shadowColor = '#ef4444';
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fillStyle = g; ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#991b1b';
+  ctx.lineWidth = size*.025; ctx.stroke();
+
+  ctx.fillStyle = 'white';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = `bold ${Math.round(r*.38)}px Arial`;
+  ctx.fillText("DON'T", cx, cy - r*.17);
+  ctx.font = `bold ${Math.round(r*.28)}px Arial`;
+  ctx.fillText('PUSH', cx, cy + r*.22);
+
+  const a = document.createElement('a');
+  a.href = c.toDataURL('image/png');
+  a.download = `icon-${size}.png`;
+  a.click();
+});
+</script>
+</body></html>
