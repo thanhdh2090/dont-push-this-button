@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Microsoft Store Package Manifest
+  Package Identity  : Aragorn102.DontPushthisButton
+  Publisher         : CN=1DEBC1BC-F7E2-41EF-AD3E-0C5D0B5E5C65
+  PFN               : Aragorn102.DontPushthisButton_0a6qk2rwrn62y
+  Store ID          : 9NDWXBSFNFBV
+
+  BEFORE PACKAGING:
+    Replace REPLACE_WITH_YOUR_HOSTED_URL below with your actual hosted URL.
+    Example: https://yourusername.github.io/dont-push-this-button
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap2="http://schemas.microsoft.com/appx/manifest/uap/windows10/2"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+  IgnorableNamespaces="mp uap uap2 uap3 uap5">
+
+  <Identity
+    Name="Aragorn102.DontPushthisButton"
+    Publisher="CN=1DEBC1BC-F7E2-41EF-AD3E-0C5D0B5E5C65"
+    Version="1.0.0.0"
+    ProcessorArchitecture="neutral" />
+
+  <mp:PhoneIdentity
+    PhoneProductId="f1fd5a41-9bba-4e4a-b5a6-e0bf54c94648"
+    PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+
+  <Properties>
+    <DisplayName>Don't Push This Button</DisplayName>
+    <PublisherDisplayName>Aragorn102</PublisherDisplayName>
+    <Logo>images\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily
+      Name="Windows.Universal"
+      MinVersion="10.0.17763.0"
+      MaxVersionTested="10.0.22621.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <Application
+      Id="App"
+      StartPage="REPLACE_WITH_YOUR_HOSTED_URL">
+
+      <uap:VisualElements
+        DisplayName="Don't Push This Button"
+        Description="A psychological test disguised as a game. One rule: do not press the red button."
+        BackgroundColor="#050505"
+        Square150x150Logo="images\Square150x150Logo.png"
+        Square44x44Logo="images\Square44x44Logo.png">
+
+        <uap:DefaultTile
+          ShortName="Don't Push"
+          Wide310x150Logo="images\Wide310x150Logo.png"
+          Square310x310Logo="images\LargeTile.png"
+          Square71x71Logo="images\SmallTile.png">
+          <uap:ShowNameOnTiles>
+            <uap:ShowOn Tile="square150x150Logo" />
+            <uap:ShowOn Tile="wide310x150Logo" />
+            <uap:ShowOn Tile="square310x310Logo" />
+          </uap:ShowNameOnTiles>
+        </uap:DefaultTile>
+
+        <uap:SplashScreen Image="images\SplashScreen.png" BackgroundColor="#050505" />
+
+        <uap:InitialRotationPreference>
+          <uap:Rotation Preference="landscape" />
+          <uap:Rotation Preference="portrait" />
+        </uap:InitialRotationPreference>
+      </uap:VisualElements>
+
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <Capability Name="internetClient" />
+  </Capabilities>
+
+</Package>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Icon Generator — Don't Push This Button</title>
+<style>
+  body { background:#111; color:#e5e7eb; font-family:system-ui,sans-serif; padding:32px; }
+  h1 { color:#ef4444; font-size:24px; margin:0 0 8px; }
+  p  { color:#6b7280; font-size:14px; margin:0 0 28px; }
+  .grid { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:32px; }
+  .card { background:#1a1a1a; border:1px solid #2d2d2d; border-radius:10px;
+          padding:14px; display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .card canvas { image-rendering:pixelated; max-width:120px; max-height:120px; }
+  button { background:#dc2626; color:white; border:none; border-radius:6px;
+           padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; }
+  button:hover { background:#ef4444; }
+  .label { color:#9ca3af; font-size:11px; text-align:center; }
+  hr { border-color:#222; margin:28px 0; }
+  .section { color:#fbbf24; font-size:13px; font-weight:700; margin-bottom:12px; letter-spacing:.08em; }
+</style>
+</head>
+<body>
+<h1>🔴 Icon Generator</h1>
+<p>Click each "Download" button, then save to the correct folder. See instructions below.</p>
+
+<div id="app"></div>
+
+<script>
+/* ── Icon drawing function ─────────────────────────── */
+function drawIcon(canvas, size, type) {
+  const ctx = canvas.getContext('2d');
+  canvas.width  = size;
+  canvas.height = size;
+
+  if (type === 'wide') {
+    /* Wide tile 310×150 */
+    canvas.width  = 310;
+    canvas.height = 150;
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, 310, 150);
+
+    /* Red button */
+    const cx = 155, cy = 75, r = 50;
+    const grd = ctx.createRadialGradient(cx-14, cy-16, 4, cx, cy, r);
+    grd.addColorStop(0,   '#ff7070');
+    grd.addColorStop(0.45,'#dc2626');
+    grd.addColorStop(0.8, '#991b1b');
+    grd.addColorStop(1,   '#7f1d1d');
+    ctx.shadowBlur  = 28;
+    ctx.shadowColor = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+    ctx.strokeStyle = '#991b1b';
+    ctx.lineWidth   = 3;
+    ctx.stroke();
+    ctx.shadowBlur  = 0;
+
+    /* Text */
+    ctx.fillStyle    = 'white';
+    ctx.font         = `bold ${size > 100 ? 14 : 9}px "Arial"`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText("DON'T", cx, cy-9);
+    ctx.font = `bold ${size > 100 ? 11 : 7}px "Arial"`;
+    ctx.fillText('PUSH', cx, cy+8);
+    return;
+  }
+
+  if (type === 'splash') {
+    canvas.width  = 620;
+    canvas.height = 300;
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, 620, 300);
+    const cx = 310, cy = 150, r = 85;
+    const grd = ctx.createRadialGradient(cx-24, cy-28, 8, cx, cy, r);
+    grd.addColorStop(0,   '#ff7070');
+    grd.addColorStop(0.45,'#dc2626');
+    grd.addColorStop(0.8, '#991b1b');
+    grd.addColorStop(1,   '#7f1d1d');
+    ctx.shadowBlur  = 50;
+    ctx.shadowColor = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+    ctx.strokeStyle = '#991b1b';
+    ctx.lineWidth   = 4;
+    ctx.stroke();
+    ctx.shadowBlur  = 0;
+    ctx.fillStyle    = 'white';
+    ctx.font         = 'bold 22px Arial';
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText("DON'T", cx, cy-14);
+    ctx.font = 'bold 17px Arial';
+    ctx.fillText('PUSH', cx, cy+12);
+    return;
+  }
+
+  /* Square icon */
+  ctx.fillStyle = '#050505';
+  ctx.fillRect(0, 0, size, size);
+
+  const padding = Math.round(size * 0.1);
+  const cx = size / 2;
+  const cy = size / 2;
+  const r  = size / 2 - padding;
+
+  const grd = ctx.createRadialGradient(
+    cx - r * 0.28, cy - r * 0.32, r * 0.08,
+    cx, cy, r
+  );
+  grd.addColorStop(0,   '#ff7070');
+  grd.addColorStop(0.45,'#dc2626');
+  grd.addColorStop(0.8, '#991b1b');
+  grd.addColorStop(1,   '#7f1d1d');
+
+  ctx.shadowBlur  = size * 0.22;
+  ctx.shadowColor = '#ef4444';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  ctx.shadowBlur  = 0;
+  ctx.strokeStyle = '#991b1b';
+  ctx.lineWidth   = Math.max(2, size * 0.025);
+  ctx.stroke();
+
+  if (size >= 44) {
+    ctx.fillStyle    = 'white';
+    ctx.font         = `bold ${Math.round(r * 0.38)}px Arial`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText("DON'T", cx, cy - r * 0.17);
+    ctx.font = `bold ${Math.round(r * 0.28)}px Arial`;
+    ctx.fillText('PUSH', cx, cy + r * 0.22);
+  }
+}
+
+/* ── Icon specs ─────────────────────────────────────── */
+const SPECS = [
+  /* PWA icons */
+  { label:'PWA 72×72',    file:'icons/icon-72.png',           size:72,  type:'sq' },
+  { label:'PWA 96×96',    file:'icons/icon-96.png',           size:96,  type:'sq' },
+  { label:'PWA 128×128',  file:'icons/icon-128.png',          size:128, type:'sq' },
+  { label:'PWA 144×144',  file:'icons/icon-144.png',          size:144, type:'sq' },
+  { label:'PWA 152×152',  file:'icons/icon-152.png',          size:152, type:'sq' },
+  { label:'PWA 192×192',  file:'icons/icon-192.png',          size:192, type:'sq' },
+  { label:'PWA 384×384',  file:'icons/icon-384.png',          size:384, type:'sq' },
+  { label:'PWA 512×512',  file:'icons/icon-512.png',          size:512, type:'sq' },
+  /* MSIX / Store images */
+  { label:'Store Logo 50×50',      file:'images/StoreLogo.png',           size:50,  type:'sq' },
+  { label:'SmallTile 71×71',       file:'images/SmallTile.png',           size:71,  type:'sq' },
+  { label:'Square44 44×44',        file:'images/Square44x44Logo.png',     size:44,  type:'sq' },
+  { label:'Square150 150×150',     file:'images/Square150x150Logo.png',   size:150, type:'sq' },
+  { label:'LargeTile 310×310',     file:'images/LargeTile.png',           size:310, type:'sq' },
+  { label:'WideTile 310×150',      file:'images/Wide310x150Logo.png',     size:0,   type:'wide' },
+  { label:'SplashScreen 620×300',  file:'images/SplashScreen.png',        size:0,   type:'splash' },
+];
+
+/* ── Build UI ───────────────────────────────────────── */
+const app = document.getElementById('app');
+
+/* Section: PWA */
+let html = '<p class="section">PWA ICONS → save to <code>icons/</code> folder</p><div class="grid" id="pwa-grid"></div>';
+html += '<hr/><p class="section">MSIX STORE IMAGES → save to <code>images/</code> folder</p><div class="grid" id="msix-grid"></div>';
+app.innerHTML = html;
+
+const pwaGrid  = document.getElementById('pwa-grid');
+const msixGrid = document.getElementById('msix-grid');
+
+SPECS.forEach((spec, idx) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const canvas = document.createElement('canvas');
+  drawIcon(canvas, spec.size, spec.type);
+
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.textContent = spec.label;
+
+  const fileLbl = document.createElement('div');
+  fileLbl.className = 'label';
+  fileLbl.style.color = '#4b5563';
+  fileLbl.textContent = spec.file;
+
+  const btn = document.createElement('button');
+  btn.textContent = 'Download';
+  btn.addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.href     = canvas.toDataURL('image/png');
+    a.download = spec.file.split('/').pop();
+    a.click();
+  });
+
+  card.appendChild(canvas);
+  card.appendChild(label);
+  card.appendChild(fileLbl);
+  card.appendChild(btn);
+
+  const isPWA = spec.file.startsWith('icons/');
+  (isPWA ? pwaGrid : msixGrid).appendChild(card);
+});
+
+/* ── Download All button ────────────────────────────── */
+const allBtn = document.createElement('button');
+allBtn.textContent = '⬇ Download All (one by one)';
+allBtn.style.cssText = 'font-size:15px;padding:12px 28px;margin-top:8px;';
+allBtn.addEventListener('click', () => {
+  SPECS.forEach((spec, i) => {
+    const canvas = document.createElement('canvas');
+    drawIcon(canvas, spec.size, spec.type);
+    setTimeout(() => {
+      const a = document.createElement('a');
+      a.href     = canvas.toDataURL('image/png');
+      a.download = spec.file.split('/').pop();
+      a.click();
+    }, i * 300);
+  });
+});
+app.appendChild(allBtn);
+</script>
+
+<hr/>
+<h2 style="color:#fbbf24;font-size:16px;">📋 Instructions</h2>
+<ol style="color:#9ca3af;font-size:13px;line-height:2;">
+  <li>Open this page in your browser (double-click <code>icon-gen.html</code>).</li>
+  <li>Click <strong>Download All</strong> or download each icon individually.</li>
+  <li>Create two folders next to <code>index.html</code>: <code>icons/</code> and <code>images/</code>.</li>
+  <li>Move downloaded files to the correct folder as shown under each icon.</li>
+  <li>Host the game on <strong>GitHub Pages</strong> (free):
+    <ul>
+      <li>Create a GitHub repo → upload all files → Settings → Pages → Deploy from main.</li>
+      <li>Your URL will be: <code>https://&lt;username&gt;.github.io/&lt;repo&gt;/</code></li>
+    </ul>
+  </li>
+  <li>Edit <code>Package.appxmanifest</code> — replace <code>REPLACE_WITH_YOUR_HOSTED_URL</code> with your GitHub Pages URL.</li>
+  <li>Go to <a href="https://www.pwabuilder.com" style="color:#60a5fa;">pwabuilder.com</a>, enter your URL → Generate Package → Windows → set the Package Identity fields (already in the manifest) → Download MSIX.</li>
+  <li>Submit the MSIX in <a href="https://partner.microsoft.com" style="color:#60a5fa;">Microsoft Partner Center</a>.</li>
+</ol>
+</body>
+</html>

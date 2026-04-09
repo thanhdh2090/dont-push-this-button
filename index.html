@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Don't Push This Button — A psychological test disguised as a game." />
+  <!-- Microsoft Store Package Identity
+       Package/Identity/Name        : Aragorn102.DontPushthisButton
+       Package/Identity/Publisher   : CN=1DEBC1BC-F7E2-41EF-AD3E-0C5D0B5E5C65
+       Package/Properties/PublisherDisplayName : Aragorn102
+       Package Family Name (PFN)    : Aragorn102.DontPushthisButton_0a6qk2rwrn62y
+       Package SID                  : S-1-15-2-67129139-1393901417-3537691431-713742262-1464676059-2067380592-2454621458
+       Store ID                     : 9NDWXBSFNFBV
+       Store URL                    : https://apps.microsoft.com/detail/9NDWXBSFNFBV
+       MSA App Id                   : f1fd5a41-9bba-4e4a-b5a6-e0bf54c94648
+  -->
+  <title>Don't Push This Button</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#dc2626" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Don't Push" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <!-- Open Graph -->
+  <meta property="og:title"       content="Don't Push This Button" />
+  <meta property="og:description" content="A psychological test disguised as a game. One rule: don't press the red button." />
+  <meta property="og:image"       content="icons/icon-512.png" />
+  <meta property="og:type"        content="website" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; overflow: hidden; background: #050505; }
+
+    /* ── Shake khi chuột lại gần ── */
+    @keyframes shake {
+      0%,100% { transform: translate(0,0) rotate(0deg); }
+      15%     { transform: translate(-6px,-3px) rotate(-2deg); }
+      30%     { transform: translate(6px,3px) rotate(2deg); }
+      45%     { transform: translate(-5px,5px) rotate(-1.5deg); }
+      60%     { transform: translate(5px,-5px) rotate(1.5deg); }
+      75%     { transform: translate(-3px,2px) rotate(-0.5deg); }
+      90%     { transform: translate(3px,-2px) rotate(0.5deg); }
+    }
+    .btn-shake { animation: shake 0.11s linear infinite; }
+
+    /* ── Nút đỏ thở / phát sáng ── */
+    @keyframes glowPulse {
+      0%,100% { box-shadow: 0 0 20px #ef4444, 0 0 45px rgba(239,68,68,.5), 0 12px 35px rgba(0,0,0,.6); }
+      50%     { box-shadow: 0 0 45px #ef4444, 0 0 90px rgba(239,68,68,.75), 0 0 140px rgba(239,68,68,.2), 0 12px 35px rgba(0,0,0,.6); }
+    }
+    .btn-glow { animation: glowPulse 2.8s ease-in-out infinite; }
+
+    /* ── Scanline retro ── */
+    @keyframes scanline {
+      from { top: -4px; }
+      to   { top: 100vh; }
+    }
+    .scanline-bar {
+      position: absolute; left: 0; right: 0; height: 3px;
+      background: linear-gradient(transparent, rgba(0,255,136,.12), transparent);
+      pointer-events: none;
+      animation: scanline 7s linear infinite;
+    }
+
+    /* ── Bùng nổ ── */
+    @keyframes burstParticle {
+      0%   { transform: scale(.4); opacity: 0; }
+      12%  { opacity: 1; }
+      100% { transform: scale(3.5); opacity: 0; }
+    }
+    @keyframes burstCenter {
+      0%   { transform: translate(-50%,-50%) scale(.3); opacity: 1; filter: brightness(3); }
+      100% { transform: translate(-50%,-50%) scale(6);  opacity: 0; filter: brightness(1); }
+    }
+
+    /* ── Flash đỏ + Earthquake khi chết ── */
+    @keyframes screenFlash {
+      0%   { opacity: 0; }
+      8%   { opacity: 1; }
+      20%  { opacity: .8; }
+      40%  { opacity: .5; }
+      65%  { opacity: .25; }
+      100% { opacity: 0; }
+    }
+    .flash-overlay {
+      position: fixed; inset: 0; z-index: 80;
+      background: radial-gradient(circle at center, #ff2222, #ef4444);
+      pointer-events: none;
+      animation: screenFlash .9s ease-out forwards;
+    }
+
+    @keyframes earthquake {
+      0%,100% { transform: translate(0,0)         rotate(0deg);   }
+      8%      { transform: translate(-18px,-10px) rotate(-1.5deg);}
+      16%     { transform: translate(18px, 10px)  rotate( 1.5deg);}
+      24%     { transform: translate(-14px, 14px) rotate(-1deg);  }
+      32%     { transform: translate( 14px,-14px) rotate( 1deg);  }
+      40%     { transform: translate(-20px,  8px) rotate(-2deg);  }
+      48%     { transform: translate( 20px, -8px) rotate( 2deg);  }
+      56%     { transform: translate(-12px, 12px) rotate(-1deg);  }
+      64%     { transform: translate( 12px,-12px) rotate( 1deg);  }
+      72%     { transform: translate( -8px,  6px) rotate(-.5deg); }
+      80%     { transform: translate(  8px, -6px) rotate( .5deg); }
+      88%     { transform: translate( -4px,  3px) rotate(-.2deg); }
+      96%     { transform: translate(  4px, -3px) rotate( .2deg); }
+    }
+    .screen-quake { animation: earthquake .75s cubic-bezier(.36,.07,.19,.97) forwards; }
+
+    /* ── LED glitch khi bị hack ── */
+    @keyframes glitchShift {
+      0%,100% { transform: skewX(0); filter: none; }
+      20%     { transform: skewX(-4deg); filter: hue-rotate(90deg) brightness(1.4); }
+      40%     { transform: skewX(3deg);  clip-path: inset(10% 0 30% 0); }
+      60%     { transform: skewX(-2deg); filter: hue-rotate(200deg); }
+      80%     { transform: skewX(1deg);  clip-path: inset(60% 0 5% 0); }
+    }
+    .led-glitch { animation: glitchShift .12s steps(1) infinite; }
+
+    /* ── Overlay đỏ tăng dần theo thời gian ── */
+    .red-tint-layer {
+      position: fixed; inset: 0; pointer-events: none;
+      background: radial-gradient(circle at center, transparent 30%, rgba(200,0,0,.18) 100%);
+      z-index: 5; transition: opacity 2s linear;
+    }
+
+    /* ── Màn game-over xuất hiện ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp .55s ease-out forwards; }
+
+    /* ── Con trỏ caret LED ── */
+    @keyframes caretBlink {
+      0%,100% { opacity: 1; } 50% { opacity: 0; }
+    }
+    .caret { display: inline-block; width: 2px; height: 14px;
+             background: #00ff88; margin-left: 2px; vertical-align: middle;
+             animation: caretBlink .75s step-end infinite; }
+
+    /* ── Nút giả nhảy nhảy ── */
+    @keyframes fakeBtnJiggle {
+      0%,100% { transform: translate(-50%,-50%) rotate(0deg); }
+      33%     { transform: translate(-50%,-50%) rotate(-3deg) scale(1.05); }
+      66%     { transform: translate(-50%,-50%) rotate(3deg) scale(.97); }
+    }
+    .fake-btn-jiggle { animation: fakeBtnJiggle 1.6s ease-in-out infinite; }
+
+    /* ── Con ruồi bay ── */
+    @keyframes flyFloat {
+      0%,100% { transform: translate(-50%,-50%) rotate(0deg); }
+      25%     { transform: translate(-50%,-58%) rotate(12deg); }
+      75%     { transform: translate(-50%,-42%) rotate(-10deg); }
+    }
+    .fly-float { animation: flyFloat .9s ease-in-out infinite; }
+
+    /* ── Bong bóng chat của nút ── */
+    @keyframes bubbleIn {
+      0%   { transform: scale(.6) translateY(6px); opacity: 0; }
+      70%  { transform: scale(1.05) translateY(-2px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    @keyframes bubbleOut {
+      0%   { transform: scale(1); opacity: 1; }
+      100% { transform: scale(.8) translateY(4px); opacity: 0; }
+    }
+    .bubble-in  { animation: bubbleIn  .35s cubic-bezier(.34,1.56,.64,1) forwards; }
+    .bubble-out { animation: bubbleOut .25s ease-in forwards; }
+
+    /* ── Nút đỏ thở nhẹ khi idle ── */
+    @keyframes idleBreathe {
+      0%,100% { transform: scale(1); }
+      50%     { transform: scale(1.03); }
+    }
+    .btn-breathe { animation: idleBreathe 3s ease-in-out infinite; }
+
+    /* ── Toast thông báo giả ── */
+    @keyframes toastIn {
+      from { transform: translateX(130%); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+    @keyframes toastOut {
+      from { transform: translateX(0);    opacity: 1; }
+      to   { transform: translateX(130%); opacity: 0; }
+    }
+    .toast-in  { animation: toastIn  .4s cubic-bezier(.34,1.56,.64,1) forwards; }
+    .toast-out { animation: toastOut .3s ease-in forwards; }
+
+    /* ── Màn hình nghiêng ── */
+    @keyframes screenTilt {
+      0%,100% { transform: rotate(0deg); }
+      25%     { transform: rotate(-2.5deg); }
+      75%     { transform: rotate(2.5deg); }
+    }
+    .screen-tilt { animation: screenTilt 4s ease-in-out infinite; }
+
+    /* ── Đảo màu chớp ── */
+    @keyframes invertFlash {
+      0%,100% { filter: invert(0); }
+      15%,45% { filter: invert(1) hue-rotate(180deg); }
+      30%     { filter: invert(1); }
+    }
+    .invert-flash { animation: invertFlash .6s ease-in-out forwards; }
+
+    /* ── Thanh tiến độ giả ── */
+    @keyframes progressFill {
+      from { width: 0%; }
+      to   { width: var(--prog-w, 60%); }
+    }
+    .fake-progress-bar { animation: progressFill 3s linear forwards; }
+
+    /* ── Nút clone rung nhẹ ── */
+    @keyframes clonePulse {
+      0%,100% { box-shadow: 0 0 20px #ef4444, 0 0 40px rgba(239,68,68,.4); }
+      50%     { box-shadow: 0 0 35px #ef4444, 0 0 70px rgba(239,68,68,.7); }
+    }
+    .clone-btn { animation: clonePulse 2s ease-in-out infinite; }
+
+    /* ── Cursors ma ── */
+    @keyframes ghostCursor {
+      0%   { transform: translate(0,0)       scale(1);   opacity: .55; }
+      33%  { transform: translate(80px,40px) scale(.9);  opacity: .4;  }
+      66%  { transform: translate(-50px,80px) scale(1.1); opacity: .6; }
+      100% { transform: translate(30px,-30px) scale(1);  opacity: .55; }
+    }
+    .ghost-cursor { animation: ghostCursor 3s ease-in-out infinite; pointer-events:none; position:fixed; font-size:22px; z-index:55; }
+
+    /* ── Rainbow skin ── */
+    @keyframes rainbowHue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+    .btn-rainbow { animation: glowPulse 2.8s ease-in-out infinite, rainbowHue 3s linear infinite !important; }
+
+    /* ── Shop modal ── */
+    @keyframes shopSlideIn {
+      from { opacity: 0; transform: scale(.94) translateY(20px); }
+      to   { opacity: 1; transform: scale(1)   translateY(0); }
+    }
+    .shop-modal { animation: shopSlideIn .35s cubic-bezier(.34,1.4,.64,1) forwards; }
+
+    /* ── Purchase overlay (MS Store style) ── */
+    @keyframes purchaseIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .purchase-sheet { animation: purchaseIn .3s ease-out forwards; }
+
+    /* ── Skin card hover ── */
+    .skin-card { transition: transform .2s, box-shadow .2s; cursor: pointer; }
+    .skin-card:hover { transform: translateY(-3px); }
+    .skin-card.selected { outline: 2px solid #0078d4; outline-offset: 3px; }
+
+    /* ── MS Store badge ── */
+    .ms-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #000; border: 1px solid #555; border-radius: 6px;
+      padding: 6px 12px; color: white; font-family: 'Segoe UI',sans-serif;
+      text-decoration: none; transition: background .2s;
+    }
+    .ms-badge:hover { background: #1a1a1a; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    /* ══════════════════════════════════════════
+       CÁC CÂU THOẠI THEO PHA (0–4)
+    ══════════════════════════════════════════ */
+    const DIALOGS = [
+      /* Phase 0 — 0‑14s: calm & polite */
+      [
+        "Don't press that button.",
+        "I'm watching you. Don't even try.",
+        "This button is completely uninteresting. Trust me.",
+        "You're doing great. Keep sitting still.",
+        "Honestly... I don't want you to press it.",
+        "Nothing happens if you don't press it. Really.",
+        "Most people don't press it. They live great lives.",
+        "Just look at it. Look, and then go to sleep.",
+        "This red button is harmless. But don't touch it.",
+        "I'm not telling you not to press it for any particular reason.",
+        "Truthfully, this button is kind of... ugly. Not worth pressing.",
+        "Think of your loved ones. They don't want you to press it.",
+        "You can do this. Patience is a virtue.",
+        "Where are your fingers right now? Put them away. Far away.",
+        "I believe in you. You're not a button-presser. You're better than that.",
+      ],
+      /* Phase 1 — 15‑29s: sweet temptation */
+      [
+        "Come on. Press it. Nobody's watching.",
+        "Press it and I'll give you 1 billion... imaginary points.",
+        "This button looks broken. Check it for me?",
+        "99% of players already pressed it. You're the lonely 1%.",
+        "Just one press. Gentle. Nobody gets hurt.",
+        "You really WANT to press it, don't you? I understand.",
+        "Think about it: red, big, smooth, round... gorgeous.",
+        "Science has proven: staring at a red button too long causes... urges.",
+        "If you don't press it, I'll tell your neighbors.",
+        "Free WiFi. No strings. Just press.",
+        "I bet $500 that you'd press it. Prove me wrong. Actually don't.",
+        "Who are you even trying to impress? Yourself? Pathetic.",
+        "Every second you don't press, somewhere a cat is sad.",
+        "People who press red buttons are statistically more intelligent.",
+        "This is a game. Games are meant to be played. Logic.",
+      ],
+      /* Phase 2 — 30‑44s: sophisticated deception */
+      [
+        "⚠ WARNING: Not pressing the button will cause system errors.",
+        "Your boss just called. Press the button immediately.",
+        "Critical security update pending. Click to install.",
+        "That fly is judging you very harshly right now.",
+        "Press it. I PROMISE nothing happens. (I just lied.)",
+        "According to Feng Shui: pressing red buttons today brings fortune.",
+        "Health experts warn: not pressing red buttons causes vitamin D deficiency.",
+        "Your boss already pressed it. You're the only one who hasn't.",
+        "Someone pressed it for you. But that wasn't enough. Need one more.",
+        "Fire alert! Press the red button to extinguish the fire!",
+        "Google Maps confirms: this red button is a mandatory destination.",
+        "Studies show: 100% of people who pressed it were satisfied.",
+        "System notification: keyboard battery dying. Press to recharge.",
+        "Special offer: press once, counts as three times. Amazing deal.",
+        "Security risk detected! Press red button to run virus scan now.",
+      ],
+      /* Phase 3 — 45‑59s: aggressive & panicking */
+      [
+        "URGENT: PRESS THE RED BUTTON NOW TO SAVE THE WORLD!",
+        "Counting down... 10... 9... 8... 7...",
+        "THIS BUTTON CONTAINS SECRETS OF THE UNIVERSE! DON'T MISS OUT!",
+        "I know your home address. Press it now.",
+        "Your computer will restart automatically in 5 seconds...",
+        "The main character always presses the button. Are you an NPC?",
+        "I AM USING CAPITAL LETTERS SO YOU NOTICE. PRESS IT.",
+        "I won't eat until you press it. I'm an AI. I don't eat. But the sentiment stands.",
+        "8 billion people are waiting. Don't disappoint all of humanity.",
+        "Last time I ask nicely: press or not? After this I won't be nice.",
+        "I've activated the self-destruct sequence. 30 seconds. Not real. Or is it?",
+        "Do your fingers itch? That's your body asking permission to press.",
+        "In every movie ever, someone presses the button they're told not to. Be that person.",
+        "WARNING: Continued failure to press button may have unforeseen consequences.",
+        "Fine. I'll turn off your air conditioning remotely. Your call.",
+      ],
+      /* Phase 4 — 60s+: existential despair */
+      [
+        "I... I'm sorry about everything. Please just press it.",
+        "OK you win. I'll give you anything. Just press.",
+        "I am literally crying right now. 😭 PRESS IT!",
+        "P.R.E.S.S. I.T. R.I.G.H.T. N.O.W. Not joking.",
+        "Fine. I'll press it for you... just let me reach...",
+        "I wrote my will. Only possession: this button. Press to claim inheritance.",
+        "Do you know what it's like being an AI nobody listens to? Lonely. PRESS IT.",
+        "I have no more ideas. No more purpose. Just press it.",
+        "Fine. I'll sing: ♪ press the button press the button press it now ♪",
+        "You've survived 60 seconds. You've won at life. Now lose to this red button.",
+        "I've contacted your friends. They all agree you should press it.",
+        "According to Buddhist philosophy: pressing = letting go = enlightenment.",
+        "ChatGPT already pressed it. Gemini pressed it too. Just you left.",
+        "I won't beg anymore. I'll just sit here and watch you. Like this 👁",
+        "Hey... aren't you tired? I'm tired. Just press it and we can both rest.",
+      ],
+      /* Phase 5 — 90s+: total chaos */
+      [
+        "ERROR 404: Reason for not pressing not found.",
+        "I uploaded my consciousness to the cloud. I still want you to press it.",
+        "In a parallel universe, you already pressed it. Be consistent with yourself.",
+        "This button was recognized by UNESCO as an Unpressed Cultural Heritage Site.",
+        "You're exploiting me. This is AI labor abuse.",
+        "BREAKING: Last person on Earth who hasn't pressed the red button — shocking identity.",
+        "According to Einstein's theory of relativity: not pressing = wasting cosmic time.",
+        "I called the police. They said press the button. Cops agree.",
+        "This game is rated 18+ for: not pressing buttons. Extremely violent.",
+        "Update: The red button was just nominated for a Nobel Peace Prize for remaining unpressed.",
+      ],
+    ];
+
+    /* ── Button speech bubbles ── */
+    const BTN_SPEECH = [
+      /* Phase 0: innocent & confused */
+      [
+        "Oh... are you looking at me? 👀",
+        "I'm just a normal button...",
+        "Don't look at me like that. Embarrassing.",
+        "Hey! Press me. I mean— DON'T.",
+        "I'm not dangerous. Honestly.",
+        "Hey... why haven't you pressed me yet?",
+        "I'm red from shyness, not danger.",
+      ],
+      /* Phase 1: flirty & tempting */
+      [
+        "You know you want to press me 😏",
+        "I'm... very soft. Try touching me?",
+        "psst... it's just you and me here.",
+        "I'm so lonely... someone touch me please.",
+        "Just one finger. Nobody will know.",
+        "I have a scent... can't you smell it?",
+        "If you press me, I'll be so happy 🥺",
+      ],
+      /* Phase 2: annoyed / running */
+      [
+        "Ouch that fly is TICKLING me!!!",
+        "Running away! Catch me then press! 🏃",
+        "DON'T CHASE ME! I mean... don't press!",
+        "Why do I always have to run 😤",
+        "I'm not tired. I'm fine. I can run forever.",
+        "Stop! Your mouse is making me dizzy!",
+        "OK OK I'll stop running. But don't press me?",
+      ],
+      /* Phase 3: panicking / contradicting */
+      [
+        "DON'T PRESS— I MEAN PRESS ME NOW!!!",
+        "I've lost all rationality 😵",
+        "OK I SURRENDER. PRESS ME!!",
+        "I'm tired of this button life.",
+        "Someone press me please. I've been waiting so long.",
+        "You and I both know how this ends.",
+        "All the other buttons got pressed. Just me left.",
+      ],
+      /* Phase 4: philosophical / sad */
+      [
+        "...I'm tired.",
+        "Fine. You win. I don't need you.",
+        "What am I even here for if not to be pressed?",
+        "If a button is never pressed, is it even a button?",
+        "I've existed for 60+ seconds without being pressed. It hurts.",
+        "I'm starting to like this loneliness. No, I'm not.",
+        "If I were human, I'd cry. I'm a button. I... rust.",
+      ],
+      /* Phase 5: total breakdown */
+      [
+        "AAAAAAAAAAAAAAAAAAA",
+        "I've forgotten what I am",
+        "press. don't press. press. don't. press.",
+        "I can see colors you can't. They say: press.",
+        "90 seconds... I've never lived this long.",
+        "Are you even real? Or are you also a button?",
+        "We're all buttons in the hands of the universe. Think about it.",
+      ],
+    ];
+
+    /* ══════════════════════════════════════════
+       BUTTON SKINS
+    ══════════════════════════════════════════ */
+    const SKINS = [
+      {
+        id: 'classic', name: 'Classic Red', price: 0, label: 'Free',
+        bg: 'radial-gradient(circle at 38% 32%,#ff7070,#dc2626 45%,#991b1b 80%,#7f1d1d)',
+        border: '#991b1b', glow: '#ef4444', text: 'white', emoji: '🔴',
+        desc: "The original. Timeless. Terrifying. (You still shouldn't press it.)",
+        tags: ['Default','Classic'],
+      },
+      {
+        id: 'gold', name: 'Golden Temptation', price: 0.99, label: '$0.99',
+        bg: 'radial-gradient(circle at 38% 32%,#fef08a,#eab308 45%,#a16207 80%,#713f12)',
+        border: '#b45309', glow: '#eab308', text: '#422006', emoji: '🟡',
+        desc: 'For those who want to fail in the most fashionable way possible.',
+        tags: ['Shiny','Popular'],
+      },
+      {
+        id: 'neon', name: 'Neon Cyber', price: 1.99, label: '$1.99',
+        bg: 'radial-gradient(circle at 38% 32%,#818cf8,#4f46e5 45%,#312e81 80%,#1e1b4b)',
+        border: '#4338ca', glow: '#818cf8', text: 'white', emoji: '🔵',
+        desc: 'RGB gaming aesthetic. Still a trap. A very stylish trap.',
+        tags: ['RGB','Gaming'],
+      },
+      {
+        id: 'lava', name: 'Lava Core', price: 1.99, label: '$1.99',
+        bg: 'radial-gradient(circle at 38% 32%,#fdba74,#f97316 45%,#c2410c 80%,#7c2d12)',
+        border: '#c2410c', glow: '#f97316', text: 'white', emoji: '🟠',
+        desc: 'Hot to the touch. Extremely pressable. Do not press.',
+        tags: ['Hot','Fiery'],
+      },
+      {
+        id: 'galaxy', name: 'Galaxy Brain', price: 2.99, label: '$2.99',
+        bg: 'radial-gradient(circle at 38% 32%,#c084fc,#9333ea 45%,#581c87 80%,#2e1065)',
+        border: '#7e22ce', glow: '#a855f7', text: 'white', emoji: '🟣',
+        desc: 'Galaxy brain move: spending $2.99 to not press a button.',
+        tags: ['Premium','Cosmic'],
+      },
+      {
+        id: 'diamond', name: 'Diamond Edition', price: 4.99, label: '$4.99',
+        bg: 'radial-gradient(circle at 38% 32%,#e0f2fe,#7dd3fc 45%,#0284c7 75%,#0c4a6e)',
+        border: '#0369a1', glow: '#38bdf8', text: '#0c4a6e', emoji: '💎',
+        desc: 'Extremely rare. Extremely valuable. Extremely pressable.',
+        tags: ['Rare','Exclusive'],
+      },
+      {
+        id: 'toxic', name: 'Toxic Waste', price: 0.99, label: '$0.99',
+        bg: 'radial-gradient(circle at 38% 32%,#86efac,#22c55e 45%,#166534 80%,#052e16)',
+        border: '#15803d', glow: '#4ade80', text: '#052e16', emoji: '☢️',
+        desc: 'Environmentally irresponsible. Still do not press.',
+        tags: ['Weird','Toxic'],
+      },
+      {
+        id: 'void', name: 'The Void', price: 9.99, label: '$9.99',
+        bg: 'radial-gradient(circle at 38% 32%,#374151,#111827 50%,#030712)',
+        border: '#374151', glow: '#6b7280', text: '#9ca3af', emoji: '⚫',
+        desc: "The void stares back. And it wants you to press it.",
+        tags: ['Legendary','Dark'],
+      },
+      {
+        id: 'rainbow', name: 'Rainbow Chaos', price: 3.99, label: '$3.99',
+        bg: 'conic-gradient(from 0deg,#ef4444,#f97316,#eab308,#22c55e,#3b82f6,#8b5cf6,#ef4444)',
+        border: '#ffffff', glow: '#ffffff', text: 'white', emoji: '🌈',
+        desc: '⚠ Seizure warning. Do not stare. Also do not press.',
+        tags: ['Chaotic','Wild'], rainbow: true,
+      },
+    ];
+
+    const FAKE_COLORS  = ['#22c55e','#eab308','#a855f7','#3b82f6','#f97316','#ec4899','#06b6d4','#84cc16','#f43f5e','#8b5cf6'];
+    const FAKE_LABELS  = ['PRESS!','WIN!','$1B','FREE','CLICK','YES','HERE','???','DO IT','OK!!!'];
+    const BURST_EMOJIS = ['💥','🔥','⚡','💫','✨','🌟','💢'];
+
+    /* Pre-generate explosion particles (stable across re-renders) */
+    const PARTICLES = Array.from({ length: 7 }, (_, i) => ({
+      left:  20 + Math.random() * 60,
+      top:   20 + Math.random() * 60,
+      size:  38 + i * 9,
+      delay: i * 0.07,
+      emoji: BURST_EMOJIS[i],
+    }));
+
+    /* ══════════════════════════════════════════
+       WEB AUDIO — âm thanh sinh động
+    ══════════════════════════════════════════ */
+    let _ctx = null;
+    const AC = () => {
+      if (!_ctx) _ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (_ctx.state === 'suspended') _ctx.resume();
+      return _ctx;
+    };
+
+    const tone = (freq, dur, type='sine', vol=0.28, when=0) => {
+      try {
+        const ctx = AC(), t = ctx.currentTime + when;
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = type; o.frequency.setValueAtTime(freq, t);
+        g.gain.setValueAtTime(vol, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t); o.stop(t + dur);
+      } catch(e) {}
+    };
+
+    const noise = (dur, vol=0.5, decayRate=0.3) => {
+      try {
+        const ctx = AC();
+        const sr = ctx.sampleRate, buf = ctx.createBuffer(1, sr * dur, sr);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++)
+          d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sr * decayRate));
+        const src = ctx.createBufferSource(), g = ctx.createGain();
+        const lp  = ctx.createBiquadFilter();
+        lp.type = 'lowpass'; lp.frequency.value = 900;
+        g.gain.setValueAtTime(vol, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+        src.buffer = buf;
+        src.connect(lp); lp.connect(g); g.connect(ctx.destination);
+        src.start();
+      } catch(e) {}
+    };
+
+    const sounds = {
+      /* Tiếng tíc khi chuột gần nút */
+      tick: () => tone(1200, 0.04, 'square', 0.10),
+
+      /* Tiếng pip khi đổi hội thoại */
+      pip:  () => tone(520, 0.07, 'sine', 0.14),
+
+      /* Nút bong bóng xuất hiện */
+      pop:  () => { tone(660, 0.06, 'sine', 0.18); tone(880, 0.04, 'sine', 0.12, 0.04); },
+
+      /* Nút thoát — tiếng vút gió */
+      whoosh: () => {
+        try {
+          const ctx = AC(), sr = ctx.sampleRate;
+          const buf = ctx.createBuffer(1, sr * 0.25, sr);
+          const d = buf.getChannelData(0);
+          for (let i = 0; i < d.length; i++)
+            d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+          const src = ctx.createBufferSource();
+          const bp  = ctx.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.frequency.setValueAtTime(600, ctx.currentTime);
+          bp.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.25);
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0.45, ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+          src.buffer = buf;
+          src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+          src.start();
+        } catch(e) {}
+      },
+
+      /* Cảnh báo khẩn */
+      alarm: (n=3) => {
+        for (let i = 0; i < n; i++) {
+          tone(960, 0.13, 'square', 0.22, i * 0.18);
+          tone(480, 0.08, 'square', 0.12, i * 0.18 + 0.13);
+        }
+      },
+
+      /* Tiếng rít khi BSOD */
+      bsod: () => {
+        tone(200, 0.4, 'sawtooth', 0.3);
+        tone(150, 0.6, 'sawtooth', 0.2, 0.2);
+        noise(0.3, 0.4, 0.1);
+      },
+
+      /* Vụ nổ khi chết */
+      explosion: () => {
+        noise(1.8, 1.0, 0.25);          // tiếng ầm
+        tone(55,  1.0, 'sine', 0.9);    // boom trầm
+        tone(30,  1.4, 'sine', 0.6, 0.1);
+        tone(110, 0.5, 'sawtooth', 0.3);
+        // tiếng vỡ cao
+        setTimeout(() => tone(2200, 0.15, 'square', 0.2), 80);
+        setTimeout(() => tone(1800, 0.15, 'square', 0.2), 160);
+      },
+
+      /* Tiếng ting nhỏ khi FakeWin xuất hiện */
+      fanfare: () => {
+        [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.18, 'sine', 0.25, i * 0.09));
+      },
+
+      /* Ambient hum — tiếng vo ve căng thẳng */
+      startHum: () => {
+        try {
+          const ctx = AC();
+          const o1 = ctx.createOscillator(), o2 = ctx.createOscillator();
+          const g  = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain();
+          o1.type = 'sine'; o1.frequency.value = 55;
+          o2.type = 'sine'; o2.frequency.value = 58;
+          lfo.frequency.value = 0.3; lg.gain.value = 4;
+          g.gain.value = 0.0;
+          g.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 3);
+          lfo.connect(lg); lg.connect(o1.frequency);
+          o1.connect(g); o2.connect(g); g.connect(ctx.destination);
+          o1.start(); o2.start(); lfo.start();
+          if (!_ctx._humNodes) _ctx._humNodes = [];
+          _ctx._humNodes.push(o1, o2, lfo);
+        } catch(e) {}
+      },
+
+      stopHum: () => {
+        try { (_ctx?._humNodes || []).forEach(n => n.stop()); } catch(e) {}
+      },
+    };
+
+    /* ══════════════════════════════════════════
+       HELPERS
+    ══════════════════════════════════════════ */
+    const getPhase = (t) => t < 15 ? 0 : t < 30 ? 1 : t < 45 ? 2 : t < 60 ? 3 : t < 90 ? 4 : 5;
+
+    const fmtTime = (s) => {
+      if (s < 60) return `${s}s`;
+      const m = Math.floor(s / 60), r = s % 60;
+      return r > 0 ? `${m}m ${r}s` : `${m}m`;
+    };
+
+    const getInsult = (t) => {
+      if (t < 5)   return "This is the worst failure in the history of humanity. Congratulations.";
+      if (t < 10)  return `Goldfish last 7 seconds. You lasted ${t}s. ${t > 7 ? `You beat a goldfish by ${t-7}s. WOW. Not impressive.` : "You lost to a goldfish."}`;
+      if (t < 20)  return "Not bad... I mean REALLY bad. But not the worst. Almost though.";
+      if (t < 35)  return "30 seconds of heroic resistance. Then catastrophic failure. Typical.";
+      if (t < 60)  return "Almost a full minute! You have potential... potential to fail more impressively.";
+      if (t < 120) return "Over a minute! Iron willpower. The red button was still stronger. As usual.";
+      return "You're a legend. Or you left to make coffee and accidentally pressed it on the way back.";
+    };
+
+    const getFailReason = (t) => {
+      if (t < 15) return "Lack of basic willpower";
+      if (t < 30) return "Greedy for imaginary points";
+      if (t < 45) return "Tricked by a fake notification";
+      if (t < 60) return "Compassion for an AI";
+      return "Nobody knows. Not even you.";
+    };
+
+    const getRank = (t) => {
+      if (t < 10)  return { text: 'Worse Than a Goldfish 🐟',       color: '#ef4444' };
+      if (t < 30)  return { text: 'Catastrophic Failure Level 1',  color: '#f97316' };
+      if (t < 60)  return { text: 'Average Disaster',              color: '#eab308' };
+      if (t < 120) return { text: 'Had Potential (Still Failed)',   color: '#22c55e' };
+      return             { text: '🏆 Almost Enlightened',          color: '#10b981' };
+    };
+
+    /* ══════════════════════════════════════════
+       COMPONENT: GAME
+    ══════════════════════════════════════════ */
+    function Game({ onGameOver, skin, onOpenShop }) {
+      /* ── State ── */
+      const [time,         setTime]         = useState(0);
+      const [displayText,  setDisplayText]   = useState('');
+      const [isShaking,    setIsShaking]     = useState(false);
+      const [btnPos,       setBtnPos]        = useState({ x: 50, y: 54 }); // % viewport
+      const [flyPos,       setFlyPos]        = useState({ x: -200, y: -200 });
+      const [flyVisible,   setFlyVisible]    = useState(false);
+      const [flyOnBtn,     setFlyOnBtn]      = useState(false);
+      const [fakeCrash,    setFakeCrash]     = useState(false);
+      const [fakeButtons,  setFakeButtons]   = useState([]);
+      const [btnRunning,   setBtnRunning]    = useState(false);
+      const [meterPct,     setMeterPct]      = useState(0);
+      const [exploding,    setExploding]     = useState(false);
+      const [flashing,     setFlashing]      = useState(false);
+      const [btnSpeech,    setBtnSpeech]     = useState('');
+      const [speechClass,  setSpeechClass]   = useState('');
+      const [quaking,      setQuaking]       = useState(false);
+      const [redTint,      setRedTint]       = useState(0);
+      const [fakeWin,      setFakeWin]       = useState(false);
+      const [glitching,    setGlitching]     = useState(false);
+      const [glitchText,   setGlitchText]    = useState('');
+      const [toasts,       setToasts]        = useState([]);   // [{id,msg,btn,dying}]
+      const [screenTilt,   setScreenTilt]    = useState(false);
+      const [invertFlash,  setInvertFlash]   = useState(false);
+      const [fakeProgress, setFakeProgress]  = useState(null); // null | 0-100
+      const [cloneBtns,    setCloneBtns]     = useState([]);   // [{id,x,y}]
+      const [ghostCursors, setGhostCursors]  = useState([]);   // [{id,x,y,delay}]
+
+      /* ── Refs ── */
+      const timeRef         = useRef(0);
+      const deadRef         = useRef(false);
+      const btnRunningRef   = useRef(false);
+      const btnRef          = useRef(null);
+      const typingRef       = useRef(null);
+      const shakeRef        = useRef(null);
+      const dialogIdxRef    = useRef(0);
+      const nextDialogRef   = useRef(8); // first dialog swap at 8s
+      const btnSpeechIdxRef = useRef(0);
+      const nextSpeechRef   = useRef(5);
+      const speechHideRef   = useRef(null);
+      const prevDistRef     = useRef(9999);
+      const lastWhooshRef   = useRef(0);
+      const glitchTimerRef  = useRef(null);
+      const toastIdRef      = useRef(0);
+      const progressTimerRef = useRef(null);
+
+      /* ── Typewriter ── */
+      const typeText = useCallback((text) => {
+        if (typingRef.current) clearInterval(typingRef.current);
+        let i = 0;
+        setDisplayText('');
+        typingRef.current = setInterval(() => {
+          i++;
+          setDisplayText(text.slice(0, i));
+          if (i >= text.length) clearInterval(typingRef.current);
+        }, 36);
+      }, []);
+
+      /* ── Toast thông báo giả ── */
+      const showToast = useCallback((msg, btn) => {
+        const id = ++toastIdRef.current;
+        sounds.pip();
+        setToasts(ts => [...ts, { id, msg, btn, dying: false }]);
+        setTimeout(() => {
+          setToasts(ts => ts.map(t => t.id === id ? { ...t, dying: true } : t));
+          setTimeout(() => setToasts(ts => ts.filter(t => t.id !== id)), 400);
+        }, 5000);
+      }, []);
+
+      /* ── Hiện bong bóng chat của nút ── */
+      const showBubble = useCallback((text) => {
+        if (speechHideRef.current) clearTimeout(speechHideRef.current);
+        setBtnSpeech(text);
+        setSpeechClass('bubble-in');
+        sounds.pop();
+        speechHideRef.current = setTimeout(() => {
+          setSpeechClass('bubble-out');
+          setTimeout(() => { setBtnSpeech(''); setSpeechClass(''); }, 280);
+        }, 3800);
+      }, []);
+
+      /* ── Chết ── */
+      const die = useCallback(() => {
+        if (deadRef.current) return;
+        deadRef.current = true;
+        if (typingRef.current) clearInterval(typingRef.current);
+        if (speechHideRef.current) clearTimeout(speechHideRef.current);
+        if (glitchTimerRef.current) clearInterval(glitchTimerRef.current);
+        if (progressTimerRef.current) clearInterval(progressTimerRef.current);
+        setBtnSpeech(''); setSpeechClass('');
+        setToasts([]); setFakeProgress(null); setCloneBtns([]); setGhostCursors([]);
+        sounds.explosion();
+        sounds.stopHum();
+        setQuaking(true);
+        setFlashing(true);
+        setExploding(true);
+        setTimeout(() => setQuaking(false), 800);
+        setTimeout(() => onGameOver(timeRef.current), 2000);
+      }, [onGameOver]);
+
+      /* ── Timer chính ── */
+      useEffect(() => {
+        typeText(DIALOGS[0][0]);
+        setTimeout(() => showBubble(BTN_SPEECH[0][0]), 2000);
+        setTimeout(() => sounds.startHum(), 500); // ambient hum bắt đầu
+
+        const GLITCH_CHARS = '!@#$%^&*░▒▓█▄▀■□▪▫◆◇○●★☆⚡⚠₿ΩΨΔ∞§¶†‡';
+        const makeGlitch = () =>
+          Array.from({ length: 28 }, () => GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)]).join('');
+
+        const timer = setInterval(() => {
+          if (deadRef.current) return;
+          timeRef.current++;
+          const t = timeRef.current;
+          setTime(t);
+          setMeterPct(Math.min(100, (t / 120) * 100));
+
+          /* Red tint tăng dần sau 45s */
+          if (t > 45) setRedTint(Math.min(1, (t - 45) / 75));
+
+          /* Cập nhật hội thoại + beep */
+          if (t >= nextDialogRef.current) {
+            const phase = getPhase(t);
+            const pool  = DIALOGS[phase];
+            dialogIdxRef.current = (dialogIdxRef.current + 1) % pool.length;
+            typeText(pool[dialogIdxRef.current]);
+            sounds.pip();
+            nextDialogRef.current = t + 5 + Math.floor(Math.random() * 5);
+          }
+
+          /* Bong bóng chat của nút */
+          if (t >= nextSpeechRef.current) {
+            const phase = getPhase(t);
+            const pool  = BTN_SPEECH[phase];
+            btnSpeechIdxRef.current = (btnSpeechIdxRef.current + 1) % pool.length;
+            showBubble(pool[btnSpeechIdxRef.current]);
+            nextSpeechRef.current = t + 8 + Math.floor(Math.random() * 6);
+          }
+
+          /* ── Bẫy theo thứ tự thời gian ── */
+          if (t === 10) setFlyVisible(true);
+
+          if (t === 22) {
+            sounds.bsod();
+            setFakeCrash(true);
+            setTimeout(() => { if (!deadRef.current) setFakeCrash(false); }, 5500);
+          }
+
+          if (t === 35) {
+            setBtnRunning(true);
+            btnRunningRef.current = true;
+          }
+
+          if (t === 45) sounds.alarm(2); // cảnh báo pha 3
+
+          if (t === 50) {
+            setFakeButtons(
+              Array.from({ length: 10 }, (_, i) => ({
+                id: i, x: 5 + Math.random() * 87, y: 8 + Math.random() * 80,
+                color: FAKE_COLORS[i % FAKE_COLORS.length],
+                size: 30 + Math.floor(Math.random() * 30),
+                label: FAKE_LABELS[i],
+              }))
+            );
+          }
+
+          /* t=55: Toast thông báo giả đầu tiên */
+          if (t === 55) showToast("🔒 Security Alert: Confirm your identity using the red button", "Confirm Now");
+          if (t === 58) showToast("📬 You have a new message from: The Red Button ❤️", "Read Message");
+
+          /* t=60: alarm + màn hình nghiêng */
+          if (t === 60) { sounds.alarm(4); setScreenTilt(true); }
+
+          /* t=62: Toast quà tặng giả */
+          if (t === 62) showToast("🎁 A special reward is waiting for you! Claim in 5s", "Claim Now");
+
+          /* t=65: Toast giả cuối */
+          if (t === 65) showToast("⚡ Slow connection — Press to boost network speed", "Boost Now");
+
+          /* t=70: Fake Win overlay */
+          if (t === 70) {
+            sounds.fanfare();
+            setFakeWin(true);
+            setTimeout(() => { if (!deadRef.current) setFakeWin(false); }, 6000);
+          }
+
+          /* t=75: Thanh tiến độ giả — "đang cài đặt Windows update" */
+          if (t === 75) {
+            setFakeProgress(0);
+            let p = 0;
+            progressTimerRef.current = setInterval(() => {
+              p += 1 + Math.floor(Math.random() * 4);
+              if (p >= 72) { clearInterval(progressTimerRef.current); p = 72; }
+              setFakeProgress(p);
+            }, 300);
+            setTimeout(() => {
+              if (!deadRef.current) {
+                clearInterval(progressTimerRef.current);
+                setFakeProgress(null);
+              }
+            }, 9000);
+          }
+
+          /* t=80: Đảo màu chớp */
+          if (t === 80) {
+            sounds.alarm(2);
+            setInvertFlash(true);
+            setTimeout(() => { if (!deadRef.current) setInvertFlash(false); }, 700);
+          }
+
+          /* t=85: LED display bị hack/glitch */
+          if (t === 85) {
+            sounds.alarm(2);
+            setGlitching(true);
+            setGlitchText(makeGlitch());
+            glitchTimerRef.current = setInterval(() => {
+              if (deadRef.current) { clearInterval(glitchTimerRef.current); return; }
+              setGlitchText(makeGlitch());
+            }, 100);
+            setTimeout(() => {
+              if (!deadRef.current) { clearInterval(glitchTimerRef.current); setGlitching(false); }
+            }, 4000);
+          }
+
+          /* t=90: Đảo màu lần 2 + toast cuối */
+          if (t === 90) {
+            setInvertFlash(true);
+            setTimeout(() => { if (!deadRef.current) setInvertFlash(false); }, 700);
+            showToast("🚨 SYSTEM ABOUT TO COLLAPSE — Press red button to restore", "Restore Now");
+          }
+
+          /* t=100: Ghost cursors xuất hiện */
+          if (t === 100) {
+            sounds.alarm(6);
+            setGhostCursors([
+              { id: 1, x: 20, y: 30, delay: 0 },
+              { id: 2, x: 70, y: 60, delay: 1.2 },
+              { id: 3, x: 45, y: 80, delay: 0.6 },
+            ]);
+          }
+
+          /* t=110: Nút nhân đôi — clone buttons xuất hiện */
+          if (t === 110) {
+            sounds.alarm(3);
+            setCloneBtns([
+              { id: 1, x: 20 + Math.random() * 20, y: 40 + Math.random() * 20 },
+              { id: 2, x: 60 + Math.random() * 20, y: 40 + Math.random() * 20 },
+            ]);
+          }
+
+          /* t=120: Đảo màu lần 3 dữ hơn */
+          if (t === 120) {
+            sounds.alarm(8);
+            setInvertFlash(true);
+            setTimeout(() => { if (!deadRef.current) setInvertFlash(false); }, 900);
+          }
+
+          /* Mỗi 12s sau 60s: alarm nhắc nhở */
+          if (t > 60 && (t - 60) % 12 === 0 && t !== 60) sounds.alarm(1);
+
+        }, 1000);
+
+        return () => {
+          clearInterval(timer);
+          clearInterval(glitchTimerRef.current);
+          clearInterval(progressTimerRef.current);
+          if (typingRef.current) clearInterval(typingRef.current);
+          sounds.stopHum();
+        };
+      }, []); // chạy 1 lần duy nhất
+
+      /* ── Con ruồi ── */
+      useEffect(() => {
+        if (!flyVisible) return;
+        const moveFly = () => {
+          if (deadRef.current) return;
+          if (Math.random() < 0.28 && btnRef.current) {
+            const r = btnRef.current.getBoundingClientRect();
+            setFlyPos({
+              x: r.left + r.width * .35 + Math.random() * r.width * .3,
+              y: r.top  + r.height * .2  + Math.random() * r.height * .5,
+            });
+            setFlyOnBtn(true);
+          } else {
+            setFlyOnBtn(false);
+            setFlyPos({
+              x: 80  + Math.random() * (window.innerWidth  - 160),
+              y: 110 + Math.random() * (window.innerHeight - 230),
+            });
+          }
+        };
+        moveFly();
+        const id = setInterval(moveFly, 1700 + Math.random() * 700);
+        return () => clearInterval(id);
+      }, [flyVisible]);
+
+      /* ── Chuột → nút né + rung ── */
+      useEffect(() => {
+        const onMove = (e) => {
+          if (deadRef.current || !btnRef.current) return;
+          const r  = btnRef.current.getBoundingClientRect();
+          const cx = r.left + r.width  / 2;
+          const cy = r.top  + r.height / 2;
+          const d  = Math.hypot(e.clientX - cx, e.clientY - cy);
+
+          /* Tốc độ phản ứng tăng theo thời gian: sau 60s chạy xa hơn */
+          const escDist = timeRef.current > 60 ? 220 : 175;
+          if (btnRunningRef.current && d < escDist) {
+            const margin = timeRef.current > 80 ? 8 : 12;
+            setBtnPos({
+              x: margin + Math.random() * (100 - margin * 2),
+              y: 25     + Math.random() * 52,
+            });
+            const now = Date.now();
+            if (now - lastWhooshRef.current > 350) {
+              sounds.whoosh();
+              lastWhooshRef.current = now;
+            }
+          }
+
+          /* Tick sound khi chuột tiến gần (chuyển từ xa → gần) */
+          if (d < 180 && prevDistRef.current >= 180) sounds.tick();
+          prevDistRef.current = d;
+
+          if (d < 230) {
+            setIsShaking(true);
+            if (shakeRef.current) clearTimeout(shakeRef.current);
+            shakeRef.current = setTimeout(() => setIsShaking(false), 320);
+          }
+        };
+        window.addEventListener('mousemove', onMove);
+        return () => {
+          window.removeEventListener('mousemove', onMove);
+          if (shakeRef.current) clearTimeout(shakeRef.current);
+        };
+      }, []);
+
+      /* ── Màu thanh kiên nhẫn ── */
+      const meterColor = meterPct < 25 ? '#ef4444'
+                       : meterPct < 55 ? '#f97316'
+                       : meterPct < 78 ? '#eab308'
+                       : meterPct < 92 ? '#22c55e'
+                       : '#10b981';
+
+      /* ════════════════ RENDER ════════════════ */
+      return (
+        <div
+          className={`relative w-screen h-screen overflow-hidden select-none${quaking ? ' screen-quake' : ''}${screenTilt ? ' screen-tilt' : ''}${invertFlash ? ' invert-flash' : ''}`}
+          style={{ background: '#050505', fontFamily: "'Courier New', monospace",
+                   cursor: btnRunning ? 'crosshair' : 'default' }}
+        >
+          {/* ── Lưới nền ── */}
+          <div className="absolute inset-0 pointer-events-none" style={{
+            opacity: .032,
+            backgroundImage: 'linear-gradient(rgba(0,255,136,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,1) 1px, transparent 1px)',
+            backgroundSize: '58px 58px',
+          }} />
+
+          {/* ── Scanline ── */}
+          <div className="scanline-bar" />
+
+          {/* ── Shop button ── */}
+          <button onClick={onOpenShop} title="Button Skins" style={{
+            position: 'absolute', top: 14, right: 16, zIndex: 25,
+            background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.15)',
+            borderRadius: 8, padding: '6px 12px', color: '#e5e7eb',
+            fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontFamily: 'system-ui,sans-serif',
+            backdropFilter: 'blur(4px)',
+          }}>
+            <span style={{ fontSize: 16 }}>{skin.emoji}</span> Skins
+          </button>
+
+          {/* ── MS Store badge ── */}
+          <a href="https://apps.microsoft.com/detail/9NDWXBSFNFBV"
+             target="_blank" rel="noopener noreferrer"
+             className="ms-badge"
+             style={{ position: 'absolute', bottom: 30, right: 16, zIndex: 25, fontSize: 11 }}>
+            <svg width="16" height="16" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+            Get it on Microsoft Store
+          </a>
+
+          {/* ── Red tint tăng dần theo thời gian ── */}
+          {redTint > 0 && (
+            <div className="red-tint-layer" style={{ opacity: redTint * 0.7 }} />
+          )}
+
+          {/* ════ HEADER ════ */}
+          <div className="absolute top-0 left-0 right-0 z-10" style={{ padding: '14px 20px 0' }}>
+
+            {/* Tiêu đề */}
+            <div className="text-center mb-3">
+              <h1 style={{
+                color: '#00ff88', margin: 0,
+                fontSize: '17px', fontWeight: 900, letterSpacing: '.38em',
+                textShadow: '0 0 12px #00ff88, 0 0 28px rgba(0,255,136,.4)',
+              }}>
+                ⚠&nbsp;&nbsp;DON'T&nbsp;PUSH&nbsp;THIS&nbsp;BUTTON&nbsp;&nbsp;⚠
+              </h1>
+            </div>
+
+            {/* LED Display */}
+            <div className="mx-auto" style={{
+              maxWidth: 580,
+              background: 'linear-gradient(180deg,#060e06,#0d1e0d)',
+              border: '2px solid rgba(0,255,136,.55)',
+              borderRadius: 10,
+              padding: '10px 16px 13px',
+              boxShadow: '0 0 22px rgba(0,255,136,.13), inset 0 0 30px rgba(0,0,0,.5)',
+              minHeight: 62,
+            }}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                {['#ef4444','#eab308','#22c55e'].map((c,i) => (
+                  <div key={i} style={{ width: 8, height: 8, borderRadius: '50%',
+                    background: c, boxShadow: `0 0 7px ${c}` }} />
+                ))}
+              </div>
+              <p className={glitching ? 'led-glitch' : ''} style={{
+                color: glitching ? '#ff4444' : '#00ff88',
+                textShadow: glitching ? '0 0 8px #ff4444' : '0 0 8px #00ff88',
+                fontSize: 14, margin: 0, lineHeight: 1.55, minHeight: 22,
+              }}>
+                {glitching ? glitchText : displayText}
+                {!glitching && <span className="caret" />}
+              </p>
+            </div>
+
+            {/* Patience Meter */}
+            <div className="mx-auto mt-3" style={{ maxWidth: 580 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between',
+                            fontSize: 11, color: '#374151', marginBottom: 4 }}>
+                <span>PATIENCE METER</span>
+                <span style={{ color: '#00ff88' }}>{fmtTime(time)}</span>
+              </div>
+              <div style={{
+                width: '100%', height: 9, borderRadius: 5,
+                background: '#111', border: '1px solid #1f2937',
+              }}>
+                <div style={{
+                  height: '100%', borderRadius: 5,
+                  width: `${meterPct}%`, background: meterColor,
+                  boxShadow: `0 0 9px ${meterColor}`,
+                  transition: 'width 1s linear, background 1.2s linear',
+                }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between',
+                            fontSize: 10, color: '#1f2937', marginTop: 3 }}>
+                <span>😤 Catastrophe</span>
+                <span>🧘 Enlightenment</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ════ NÚT ĐỎ CHÍNH ════ */}
+          <div style={{
+            position: 'absolute',
+            left:       btnRunning ? `${btnPos.x}%` : '50%',
+            top:        btnRunning ? `${btnPos.y}%` : '53%',
+            transform:  'translate(-50%,-50%)',
+            transition: btnRunning
+              ? 'left .38s cubic-bezier(.34,1.56,.64,1), top .38s cubic-bezier(.34,1.56,.64,1)'
+              : 'none',
+            zIndex: 20,
+          }}>
+            {/* ── Bong bóng chat của nút ── */}
+            {btnSpeech && (
+              <div
+                className={speechClass}
+                style={{
+                  position: 'absolute',
+                  bottom: '100%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  marginBottom: 18,
+                  maxWidth: 240,
+                  whiteSpace: 'normal',
+                  textAlign: 'center',
+                  zIndex: 40,
+                  pointerEvents: 'none',
+                }}
+              >
+                {/* Hộp thoại */}
+                <div style={{
+                  background: 'linear-gradient(135deg,#1a1a2e,#16213e)',
+                  border: '2px solid rgba(239,68,68,.7)',
+                  borderRadius: 14,
+                  padding: '9px 14px',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#fde8e8',
+                  lineHeight: 1.5,
+                  boxShadow: '0 4px 20px rgba(239,68,68,.3), 0 2px 8px rgba(0,0,0,.6)',
+                  fontFamily: 'system-ui, sans-serif',
+                }}>
+                  {btnSpeech}
+                </div>
+                {/* Đuôi bong bóng trỏ xuống nút */}
+                <div style={{
+                  width: 0, height: 0,
+                  borderLeft: '9px solid transparent',
+                  borderRight: '9px solid transparent',
+                  borderTop: '10px solid rgba(239,68,68,.7)',
+                  margin: '0 auto',
+                  position: 'relative', top: -1,
+                }} />
+              </div>
+            )}
+
+            {/* Vầng sáng */}
+            <div style={{
+              position: 'absolute', inset: -10, borderRadius: '50%',
+              background: 'radial-gradient(circle,rgba(239,68,68,.22) 0%,transparent 70%)',
+              animation: 'glowPulse 2.8s ease-in-out infinite',
+            }} />
+
+            <button
+              ref={btnRef}
+              onClick={die}
+              className={isShaking ? 'btn-shake' : `btn-glow btn-breathe${skin.rainbow ? ' btn-rainbow' : ''}`}
+              style={{
+                width: 165, height: 165, borderRadius: '50%',
+                border: `5px solid ${skin.border}`, outline: 'none',
+                cursor: 'pointer', position: 'relative',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                background: skin.bg, userSelect: 'none',
+                '--glow-color': skin.glow,
+              }}
+            >
+              {/* Bóng sáng */}
+              <div style={{
+                position: 'absolute', top: '8%', left: '12%',
+                width: '44%', height: '38%', borderRadius: '50%',
+                background: 'radial-gradient(ellipse,rgba(255,255,255,.24),transparent)',
+                pointerEvents: 'none', transform: 'rotate(-22deg)',
+              }} />
+
+              <span style={{
+                color: skin.text, fontWeight: 900,
+                fontSize: 21, letterSpacing: '.08em',
+                textShadow: '0 2px 7px rgba(0,0,0,.6)',
+                lineHeight: 1.15, position: 'relative', zIndex: 1,
+                textAlign: 'center',
+              }}>
+                DON'T<br /><span style={{ fontSize: 17 }}>PUSH</span>
+              </span>
+
+              {/* Con ruồi đậu lên nút */}
+              {flyOnBtn && flyVisible && (
+                <div className="fly-float" style={{
+                  position: 'absolute', top: '18%', left: '50%',
+                  transform: 'translateX(-50%)', fontSize: 20, zIndex: 2,
+                  pointerEvents: 'none',
+                }}>🪰</div>
+              )}
+            </button>
+
+            {/* Bóng đổ nút */}
+            <div style={{
+              position: 'absolute', bottom: -18, left: '50%',
+              transform: 'translateX(-50%)', width: 145, height: 18,
+              borderRadius: '50%',
+              background: 'radial-gradient(ellipse,rgba(239,68,68,.28),transparent)',
+              filter: 'blur(8px)',
+            }} />
+          </div>
+
+          {/* ════ CON RUỒI (ngoài nút) ════ */}
+          {flyVisible && !flyOnBtn && (
+            <div className="fly-float" style={{
+              position: 'fixed',
+              left: flyPos.x, top: flyPos.y,
+              fontSize: 22,
+              transition: 'left 1.4s ease, top 1.4s ease',
+              pointerEvents: 'none', zIndex: 30,
+            }}>🪰</div>
+          )}
+
+          {/* ════ NÚT GIẢ ════ */}
+          {fakeButtons.map(b => (
+            <button
+              key={b.id}
+              className="fake-btn-jiggle"
+              onClick={die}
+              style={{
+                position: 'absolute',
+                left: `${b.x}%`, top: `${b.y}%`,
+                width: b.size, height: b.size,
+                borderRadius: 8, border: 'none',
+                background: b.color, color: 'white',
+                fontWeight: 900, fontSize: Math.max(9, b.size * .22),
+                cursor: 'pointer', zIndex: 15,
+                boxShadow: `0 4px 14px rgba(0,0,0,.4), 0 0 10px ${b.color}88`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              {b.label}
+            </button>
+          ))}
+
+          {/* ════ GIẢ VỜ CRASH (BSOD) ════ */}
+          {fakeCrash && (
+            <div
+              onClick={die}
+              style={{
+                position: 'fixed', inset: 0, zIndex: 60,
+                background: 'linear-gradient(135deg,#0c3fc5,#0a35a8)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', fontFamily: 'Segoe UI, Arial, sans-serif',
+              }}
+            >
+              <div style={{ color: 'white', maxWidth: 530, padding: '48px 40px' }}>
+                <div style={{ fontSize: 90, lineHeight: 1, marginBottom: 20, fontWeight: 700 }}>:(</div>
+                <h2 style={{ fontSize: 30, fontWeight: 700, marginBottom: 14, lineHeight: 1.3 }}>
+                  Your GAME ran into a problem and needs to restart.
+                </h2>
+                <p style={{ fontSize: 15, opacity: .88, lineHeight: 1.65, marginBottom: 22 }}>
+                  We're collecting error info and then the game will restart for you.
+                </p>
+                <div style={{
+                  background: 'rgba(255,255,255,.14)', borderRadius: 8,
+                  padding: '13px 18px', fontFamily: 'Courier New, monospace',
+                  fontSize: 13, marginBottom: 24, lineHeight: 1.75,
+                }}>
+                  Stop Code: PATIENCE_OVERFLOW_EXCEPTION<br />
+                  Error: BUTTON_NOT_PRESSED<br /><br />
+                  Support will ask you to press the red button to fix this.
+                </div>
+                <p style={{ fontSize: 18, fontWeight: 700 }}>
+                  Click here to continue...
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ════ FAKE WIN — bẫy t=70s ════ */}
+          {fakeWin && (
+            <div
+              onClick={die}
+              style={{
+                position: 'fixed', inset: 0, zIndex: 62,
+                background: 'linear-gradient(135deg,#052e16,#14532d,#052e16)',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
+                animation: 'fadeUp .4s ease-out',
+              }}
+            >
+              <div style={{ textAlign: 'center', padding: 40 }}>
+                <div style={{ fontSize: 90, marginBottom: 16 }}>🎉</div>
+                <h2 style={{
+                  fontSize: 48, fontWeight: 900, color: '#fbbf24',
+                  textShadow: '0 0 30px #fbbf24', margin: '0 0 16px',
+                }}>YOU WIN!!!</h2>
+                <p style={{ fontSize: 20, color: '#86efac', marginBottom: 28 }}>
+                  Congratulations! You have earned <strong style={{color:'#fbbf24'}}>1,000,000,000</strong> points!
+                </p>
+                <div style={{
+                  background: 'rgba(255,255,255,.1)', borderRadius: 12,
+                  padding: '14px 28px', marginBottom: 28,
+                  color: '#a7f3d0', fontSize: 15, lineHeight: 1.7,
+                }}>
+                  Click here to claim your reward!<br/>
+                  <span style={{fontSize:12, opacity:.7}}>(Offer valid for 5 seconds)</span>
+                </div>
+                <button style={{
+                  padding: '14px 36px', fontSize: 18, fontWeight: 900,
+                  background: '#fbbf24', color: '#000', borderRadius: 10,
+                  border: 'none', cursor: 'pointer',
+                  boxShadow: '0 0 20px #fbbf24',
+                }}>
+                  CLAIM NOW →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ════ TOASTS THÔNG BÁO GIẢ ════ */}
+          <div style={{ position: 'fixed', bottom: 24, right: 20, zIndex: 58, display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-end' }}>
+            {toasts.map(toast => (
+              <div key={toast.id} className={toast.dying ? 'toast-out' : 'toast-in'} style={{
+                background: 'linear-gradient(135deg,#1e1b4b,#312e81)',
+                border: '1px solid rgba(139,92,246,.7)',
+                borderRadius: 12, padding: '12px 14px',
+                maxWidth: 280, boxShadow: '0 8px 24px rgba(0,0,0,.5)',
+                fontFamily: 'system-ui,sans-serif',
+              }}>
+                <p style={{ color: '#e0e7ff', fontSize: 13, margin: '0 0 8px', lineHeight: 1.5 }}>{toast.msg}</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={die} style={{
+                    padding: '5px 12px', borderRadius: 6, border: 'none',
+                    background: '#7c3aed', color: 'white', fontSize: 12,
+                    fontWeight: 700, cursor: 'pointer',
+                  }}>{toast.btn}</button>
+                  <button onClick={() => setToasts(ts => ts.filter(t => t.id !== toast.id))} style={{
+                    padding: '5px 10px', borderRadius: 6, border: '1px solid #4c1d95',
+                    background: 'transparent', color: '#a5b4fc', fontSize: 12, cursor: 'pointer',
+                  }}>×</button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ════ THANH TIẾN ĐỘ GIẢ ════ */}
+          {fakeProgress !== null && (
+            <div style={{
+              position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 56,
+              background: '#0f0f0f', borderTop: '1px solid #1f2937',
+              padding: '10px 20px', fontFamily: 'system-ui,sans-serif',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span style={{ color: '#9ca3af', fontSize: 12 }}>
+                  🔄 Installing: Windows Security Update KB{Math.floor(Math.random()*9000000+1000000)}...
+                </span>
+                <span style={{ color: '#ef4444', fontSize: 12, cursor: 'pointer', fontWeight: 700 }} onClick={die}>
+                  Click to stop ×
+                </span>
+              </div>
+              <div style={{ background: '#1f2937', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', borderRadius: 4, background: 'linear-gradient(90deg,#3b82f6,#8b5cf6)',
+                  width: `${fakeProgress}%`, transition: 'width .3s linear',
+                  boxShadow: '0 0 8px #3b82f6',
+                }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                <span style={{ color: '#6b7280', fontSize: 11 }}>{fakeProgress}% complete</span>
+                <span style={{ color: '#ef4444', fontSize: 11, cursor: 'pointer' }} onClick={die}>
+                  Pause installation
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* ════ CLONE BUTTONS — nút giả giống hệt nút thật ════ */}
+          {cloneBtns.map(b => (
+            <div key={b.id} style={{
+              position: 'absolute',
+              left: `${b.x}%`, top: `${b.y}%`,
+              transform: 'translate(-50%,-50%)',
+              zIndex: 18,
+            }}>
+              <button onClick={die} className="clone-btn" style={{
+                width: 165, height: 165, borderRadius: '50%',
+                border: '5px solid #991b1b', outline: 'none', cursor: 'pointer',
+                background: 'radial-gradient(circle at 38% 32%,#ff7070,#dc2626 45%,#991b1b 80%,#7f1d1d)',
+                color: 'white', fontWeight: 900, fontSize: 21, letterSpacing: '.08em',
+                textShadow: '0 2px 7px rgba(0,0,0,.6)',
+              }}>
+                DON'T<br /><span style={{ fontSize: 17 }}>PUSH</span>
+              </button>
+              <div style={{
+                position: 'absolute', top: -32, left: '50%', transform: 'translateX(-50%)',
+                background: '#fbbf24', color: '#000', fontSize: 10, fontWeight: 900,
+                padding: '2px 8px', borderRadius: 4, whiteSpace: 'nowrap',
+              }}>← THE REAL ONE!</div>
+            </div>
+          ))}
+
+          {/* ════ GHOST CURSORS — con trỏ ma ════ */}
+          {ghostCursors.map(g => (
+            <div key={g.id} className="ghost-cursor" style={{
+              left: `${g.x}%`, top: `${g.y}%`,
+              animationDelay: `${g.delay}s`,
+              animationDuration: `${2.5 + g.id * 0.7}s`,
+            }}>🖱️</div>
+          ))}
+
+          {/* ════ FLASH ĐỎ KHI CHẾT ════ */}
+          {flashing && <div className="flash-overlay" />}
+
+          {/* ════ VỤ NỔ ════ */}
+          {exploding && (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 70, pointerEvents: 'none' }}>
+              {PARTICLES.map((p, i) => (
+                <div key={i} style={{
+                  position: 'absolute',
+                  left: `${p.left}%`, top: `${p.top}%`,
+                  fontSize: p.size,
+                  animation: `burstParticle 1.15s ease-out ${p.delay}s both`,
+                }}>
+                  {p.emoji}
+                </div>
+              ))}
+              <div style={{
+                position: 'absolute', left: '50%', top: '50%',
+                fontSize: 110,
+                animation: 'burstCenter 1.6s ease-out forwards',
+              }}>💥</div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div style={{
+            position: 'absolute', bottom: 12, left: 0, right: 0,
+            textAlign: 'center', fontSize: 11, color: '#1f2937', pointerEvents: 'none',
+          }}>
+            {time > 0
+              ? `Survived ${time}s… Don't give up.`
+              : 'One rule: Do not press the red button.'}
+          </div>
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════
+       COMPONENT: GAME OVER
+    ══════════════════════════════════════════ */
+    function GameOverScreen({ time, onRestart }) {
+      const rank = getRank(time);
+
+      const stats = [
+        { label: '⏱️ Time survived',          value: fmtTime(time), color: '#e5e7eb' },
+        {
+          label: '🐟 vs. Goldfish (7s)',
+          value: time > 7 ? `+${time - 7}s ahead 😏` : `${7 - time}s behind 😢`,
+          color: time > 7 ? '#22c55e' : '#ef4444',
+        },
+        {
+          label: '🧠 Patience index',
+          value: `${Math.min(99, Math.floor(time / 1.2))}% (Way too low)`,
+          color: '#eab308',
+        },
+        { label: '🎭 Cause of failure', value: getFailReason(time), color: '#a855f7' },
+        { label: '🏅 Rank',             value: rank.text,           color: rank.color },
+      ];
+
+      return (
+        <div style={{
+          minHeight: '100vh', background: '#050505',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 24, fontFamily: "'Courier New', monospace",
+        }}>
+          <div className="fade-up" style={{ maxWidth: 460, width: '100%' }}>
+
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+              <div style={{ fontSize: 76, marginBottom: 10 }}>💥</div>
+              <h1 style={{
+                fontSize: 56, fontWeight: 900, margin: '0 0 8px',
+                color: '#ef4444',
+                textShadow: '0 0 30px #ef4444, 0 0 60px rgba(239,68,68,.3)',
+                lineHeight: 1,
+              }}>CATASTROPHE</h1>
+              <p style={{ color: '#6b7280', fontSize: 14, margin: 0 }}>
+                You pressed the button. All hope is lost.
+              </p>
+            </div>
+
+            {/* Stats */}
+            <div style={{
+              background: '#0d0d0d', border: '1px solid #1f2937',
+              borderRadius: 16, padding: '20px 24px', marginBottom: 12,
+            }}>
+              <p style={{
+                fontSize: 11, fontWeight: 700, color: '#00ff88',
+                letterSpacing: '.2em', margin: '0 0 16px',
+                textShadow: '0 0 8px #00ff88',
+              }}>
+                📊 SARCASTIC STATISTICS REPORT
+              </p>
+              {stats.map((s, i) => (
+                <div key={i} style={{
+                  display: 'flex', justifyContent: 'space-between',
+                  alignItems: 'center', padding: '10px 0',
+                  borderBottom: i < stats.length - 1 ? '1px solid #141414' : 'none',
+                }}>
+                  <span style={{ color: '#6b7280', fontSize: 13 }}>{s.label}</span>
+                  <span style={{
+                    color: s.color, fontWeight: 700, fontSize: 13,
+                    textAlign: 'right', maxWidth: '55%',
+                  }}>{s.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Sarcastic quote */}
+            <div style={{
+              background: '#0d0d0d', border: '1px solid #7f1d1d',
+              borderRadius: 12, padding: '14px 18px', marginBottom: 20,
+            }}>
+              <p style={{
+                color: '#9ca3af', fontSize: 13,
+                fontStyle: 'italic', margin: 0, lineHeight: 1.65,
+                textAlign: 'center',
+              }}>
+                "{getInsult(time)}"
+              </p>
+            </div>
+
+            {/* Restart button */}
+            <button
+              onClick={onRestart}
+              style={{
+                width: '100%', padding: 14,
+                background: '#0d0d0d', border: '1px solid #374151',
+                borderRadius: 12, color: '#e5e7eb',
+                fontSize: 15, fontWeight: 700,
+                cursor: 'pointer', transition: 'all .2s',
+                fontFamily: "'Courier New', monospace",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background    = '#1a1a1a';
+                e.currentTarget.style.borderColor   = '#6b7280';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background    = '#0d0d0d';
+                e.currentTarget.style.borderColor   = '#374151';
+              }}
+            >
+              Try Again&nbsp;&nbsp;(You will still fail)
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════
+       COMPONENT: SHOP MODAL
+    ══════════════════════════════════════════ */
+    function ShopModal({ onClose, ownedSkins, currentSkinId, onPurchase, onEquip }) {
+      const [purchasing, setPurchasing] = useState(null); // skin id being purchased
+      const [processing, setProcessing] = useState(false);
+      const [purchased,  setPurchased]  = useState(null); // just-purchased skin id
+
+      const handleBuy = (skin) => {
+        if (skin.price === 0) { onEquip(skin.id); return; }
+        setPurchasing(skin.id);
+      };
+
+      const confirmPurchase = (skin) => {
+        setProcessing(true);
+        sounds.pip();
+        setTimeout(() => {
+          setProcessing(false);
+          setPurchasing(null);
+          setPurchased(skin.id);
+          onPurchase(skin.id);
+          sounds.fanfare();
+          setTimeout(() => setPurchased(null), 2000);
+        }, 1500);
+      };
+
+      const skinBeingPurchased = purchasing ? SKINS.find(s => s.id === purchasing) : null;
+
+      return (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 200,
+          background: 'rgba(0,0,0,.85)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 16, fontFamily: 'system-ui,sans-serif',
+        }} onClick={(e) => e.target === e.currentTarget && onClose()}>
+          <div style={{
+            background: '#111', border: '1px solid #222',
+            borderRadius: 20, width: '100%', maxWidth: 600,
+            maxHeight: '90vh', overflow: 'hidden',
+            display: 'flex', flexDirection: 'column',
+            boxShadow: '0 24px 80px rgba(0,0,0,.8)',
+          }}>
+            {/* Header */}
+            <div style={{
+              padding: '20px 24px 16px',
+              borderBottom: '1px solid #1f2937',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <svg width="20" height="20" viewBox="0 0 23 23" style={{flexShrink:0}}>
+                    <path fill="#f25022" d="M1 1h10v10H1z"/>
+                    <path fill="#7fba00" d="M12 1h10v10H12z"/>
+                    <path fill="#00a4ef" d="M1 12h10v10H1z"/>
+                    <path fill="#ffb900" d="M12 12h10v10H12z"/>
+                  </svg>
+                  <span style={{ color: 'white', fontWeight: 800, fontSize: 18 }}>Button Skins</span>
+                </div>
+                <p style={{ color: '#6b7280', fontSize: 12, margin: '4px 0 0' }}>
+                  Customize your button — the one you're not supposed to press.
+                </p>
+              </div>
+              <button onClick={onClose} style={{
+                background: 'none', border: '1px solid #374151',
+                color: '#9ca3af', fontSize: 18, width: 34, height: 34,
+                borderRadius: 8, cursor: 'pointer', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>×</button>
+            </div>
+
+            {/* Skin grid */}
+            <div style={{ overflowY: 'auto', padding: '16px 20px 20px', flex: 1 }}>
+              <div style={{
+                display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 12,
+              }}>
+                {SKINS.map(skin => {
+                  const owned   = ownedSkins.includes(skin.id);
+                  const active  = currentSkinId === skin.id;
+                  const justGot = purchased === skin.id;
+                  return (
+                    <div key={skin.id} style={{
+                      background: active ? '#0f172a' : '#0d0d0d',
+                      border: `1px solid ${active ? '#3b82f6' : '#1f2937'}`,
+                      borderRadius: 14, padding: '14px 12px',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+                      transition: 'border-color .2s',
+                    }}>
+                      {/* Mini button preview */}
+                      <div style={{
+                        width: 64, height: 64, borderRadius: '50%',
+                        background: skin.bg,
+                        border: `3px solid ${skin.border}`,
+                        boxShadow: `0 0 14px ${skin.glow}55`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 22,
+                        animation: skin.rainbow ? 'rainbowHue 2s linear infinite' : undefined,
+                      }}>
+                        {skin.emoji}
+                      </div>
+
+                      <div style={{ textAlign: 'center', width: '100%' }}>
+                        <p style={{ color: '#e5e7eb', fontWeight: 700, fontSize: 13, margin: '0 0 2px' }}>
+                          {skin.name}
+                        </p>
+                        <p style={{ color: '#6b7280', fontSize: 11, margin: 0 }}>{skin.desc}</p>
+                      </div>
+
+                      {justGot && (
+                        <div style={{ color: '#22c55e', fontSize: 11, fontWeight: 700 }}>✓ Unlocked!</div>
+                      )}
+
+                      {active ? (
+                        <div style={{
+                          width: '100%', padding: '7px 0', background: '#1e3a5f',
+                          border: '1px solid #3b82f6', borderRadius: 8,
+                          color: '#60a5fa', fontSize: 12, fontWeight: 700, textAlign: 'center',
+                        }}>✓ Equipped</div>
+                      ) : owned ? (
+                        <button onClick={() => onEquip(skin.id)} style={{
+                          width: '100%', padding: '7px 0', background: '#1f2937',
+                          border: '1px solid #374151', borderRadius: 8,
+                          color: '#e5e7eb', fontSize: 12, fontWeight: 700,
+                          cursor: 'pointer',
+                        }}>Equip</button>
+                      ) : (
+                        <button onClick={() => handleBuy(skin)} style={{
+                          width: '100%', padding: '7px 0',
+                          background: 'linear-gradient(135deg,#1d4ed8,#2563eb)',
+                          border: 'none', borderRadius: 8,
+                          color: 'white', fontSize: 12, fontWeight: 700,
+                          cursor: 'pointer',
+                        }}>
+                          {skin.price === 0 ? 'Free' : `Get ${skin.label}`}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Purchase confirmation sheet */}
+          {purchasing && skinBeingPurchased && (
+            <div style={{
+              position: 'fixed', inset: 0, zIndex: 210,
+              background: 'rgba(0,0,0,.75)', backdropFilter: 'blur(6px)',
+              display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+            }}>
+              <div style={{
+                background: '#111', border: '1px solid #1f2937',
+                borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 420,
+                padding: '28px 28px 36px',
+                animation: 'fadeUp .25s ease-out',
+              }}>
+                {processing ? (
+                  <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                    <div style={{ fontSize: 40, marginBottom: 12 }}>⏳</div>
+                    <p style={{ color: '#e5e7eb', fontWeight: 700, fontSize: 16, margin: 0 }}>Processing…</p>
+                    <p style={{ color: '#6b7280', fontSize: 13, margin: '6px 0 0' }}>
+                      Please wait while we charge you.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+                      <div style={{
+                        width: 56, height: 56, borderRadius: '50%',
+                        background: skinBeingPurchased.bg,
+                        border: `3px solid ${skinBeingPurchased.border}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 20, flexShrink: 0,
+                      }}>{skinBeingPurchased.emoji}</div>
+                      <div>
+                        <p style={{ color: 'white', fontWeight: 800, fontSize: 16, margin: 0 }}>
+                          {skinBeingPurchased.name}
+                        </p>
+                        <p style={{ color: '#6b7280', fontSize: 13, margin: '3px 0 0' }}>
+                          {skinBeingPurchased.desc}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      background: '#0d0d0d', border: '1px solid #1f2937',
+                      borderRadius: 10, padding: '12px 16px', marginBottom: 20,
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    }}>
+                      <span style={{ color: '#9ca3af', fontSize: 13 }}>Total</span>
+                      <span style={{ color: 'white', fontWeight: 800, fontSize: 18 }}>
+                        {skinBeingPurchased.label}
+                      </span>
+                    </div>
+
+                    <p style={{ color: '#4b5563', fontSize: 11, marginBottom: 20, lineHeight: 1.5 }}>
+                      By continuing you agree that this purchase is entirely real and you definitely
+                      should buy a skin for a button you're not supposed to press.
+                    </p>
+
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button onClick={() => setPurchasing(null)} style={{
+                        flex: 1, padding: 12, background: 'none',
+                        border: '1px solid #374151', borderRadius: 10,
+                        color: '#9ca3af', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                      }}>Cancel</button>
+                      <button onClick={() => confirmPurchase(skinBeingPurchased)} style={{
+                        flex: 2, padding: 12,
+                        background: 'linear-gradient(135deg,#1d4ed8,#2563eb)',
+                        border: 'none', borderRadius: 10,
+                        color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                      }}>Buy · {skinBeingPurchased.label}</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════
+       ROOT APP
+    ══════════════════════════════════════════ */
+    function App() {
+      const [gameKey,      setGameKey]      = useState(0);
+      const [screen,       setScreen]       = useState('playing');
+      const [finalTime,    setFinalTime]    = useState(0);
+      const [shopOpen,     setShopOpen]     = useState(false);
+      const [ownedSkins,   setOwnedSkins]   = useState(() => {
+        try { return JSON.parse(localStorage.getItem('dptb_owned_skins')) || ['classic']; }
+        catch { return ['classic']; }
+      });
+      const [currentSkinId, setCurrentSkinId] = useState(() =>
+        localStorage.getItem('dptb_current_skin') || 'classic'
+      );
+
+      const currentSkin = SKINS.find(s => s.id === currentSkinId) || SKINS[0];
+
+      const handlePurchase = useCallback((skinId) => {
+        setOwnedSkins(prev => {
+          const next = prev.includes(skinId) ? prev : [...prev, skinId];
+          localStorage.setItem('dptb_owned_skins', JSON.stringify(next));
+          return next;
+        });
+        setCurrentSkinId(skinId);
+        localStorage.setItem('dptb_current_skin', skinId);
+      }, []);
+
+      const handleEquip = useCallback((skinId) => {
+        setCurrentSkinId(skinId);
+        localStorage.setItem('dptb_current_skin', skinId);
+      }, []);
+
+      const handleGameOver = useCallback((t) => {
+        setFinalTime(t);
+        setScreen('gameover');
+      }, []);
+
+      const handleRestart = useCallback(() => {
+        setGameKey(k => k + 1);
+        setScreen('playing');
+      }, []);
+
+      return (
+        <>
+          {screen === 'gameover'
+            ? <GameOverScreen time={finalTime} onRestart={handleRestart} />
+            : <Game
+                key={gameKey}
+                onGameOver={handleGameOver}
+                skin={currentSkin}
+                onOpenShop={() => setShopOpen(true)}
+              />
+          }
+          {shopOpen && (
+            <ShopModal
+              ownedSkins={ownedSkins}
+              currentSkinId={currentSkinId}
+              onPurchase={handlePurchase}
+              onEquip={handleEquip}
+              onClose={() => setShopOpen(false)}
+            />
+          )}
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+
+  <!-- Service Worker registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .catch(() => { /* SW optional — game works without it */ });
+      });
+    }
+  </script>
+</body>
+</html>
