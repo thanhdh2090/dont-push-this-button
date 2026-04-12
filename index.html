@@ -446,11 +446,75 @@
     ];
 
     /* ══════════════════════════════════════════
+       MICROSOFT STORE IAP
+       ─────────────────────────────────────────
+       Requires Add-on (Durable) products created
+       in Partner Center for each paid skin.
+       Fill in the storeId field of each skin with
+       the Store ID shown in Partner Center
+       (e.g. "9NXXXXXXXX").
+    ══════════════════════════════════════════ */
+    const MSStore = (() => {
+      // Detect Windows.Services.Store (only available when running as packaged PWA / MSIX)
+      const ctx = (() => {
+        try { return Windows?.Services?.Store?.StoreContext?.getDefault(); }
+        catch { return null; }
+      })();
+
+      const isAvailable = () => !!ctx;
+
+      // Purchase a single add-on by its Store product ID.
+      // Returns: 'succeeded' | 'alreadyPurchased' | 'notPurchased' | 'networkError' | 'error'
+      async function purchase(storeId) {
+        if (!ctx || !storeId) return 'error';
+        try {
+          const result = await ctx.requestPurchaseAsync(storeId);
+          const s = Windows.Services.Store.StorePurchaseStatus;
+          if (result.status === s.succeeded)        return 'succeeded';
+          if (result.status === s.alreadyPurchased) return 'alreadyPurchased';
+          if (result.status === s.notPurchased)     return 'notPurchased';
+          if (result.status === s.networkError)     return 'networkError';
+          return 'error';
+        } catch (e) {
+          console.error('[MSStore] purchase error', e);
+          return 'error';
+        }
+      }
+
+      // Returns the set of storeIds the user already owns (to restore purchases).
+      async function getOwnedStoreIds(storeIds) {
+        if (!ctx || !storeIds.length) return new Set();
+        try {
+          const productKinds = ['Durable'];
+          const result = await ctx.getStoreProductsAsync(productKinds, storeIds);
+          const owned = new Set();
+          if (result.products) {
+            result.products.forEach((product, key) => {
+              if (product.isInUserCollection) owned.add(key);
+            });
+          }
+          return owned;
+        } catch (e) {
+          console.error('[MSStore] getOwnedStoreIds error', e);
+          return new Set();
+        }
+      }
+
+      return { isAvailable, purchase, getOwnedStoreIds };
+    })();
+
+    /* ══════════════════════════════════════════
        BUTTON SKINS
+       ─────────────────────────────────────────
+       storeId: Add-on Store ID from Partner Center.
+       Leave null for free skins.
+       REPLACE "9NXXXXXXXX" placeholders with the
+       real IDs after creating Add-ons in Partner Center.
     ══════════════════════════════════════════ */
     const SKINS = [
       {
         id: 'classic', name: 'Classic Red', price: 0, label: 'Free',
+        storeId: null,
         bg: 'radial-gradient(circle at 38% 32%,#ff7070,#dc2626 45%,#991b1b 80%,#7f1d1d)',
         border: '#991b1b', glow: '#ef4444', text: 'white', emoji: '🔴',
         desc: "The original. Timeless. Terrifying. (You still shouldn't press it.)",
@@ -458,6 +522,7 @@
       },
       {
         id: 'gold', name: 'Golden Temptation', price: 0.99, label: '$0.99',
+        storeId: '9NXXXXXXXX', // TODO: replace with real Add-on ID from Partner Center
         bg: 'radial-gradient(circle at 38% 32%,#fef08a,#eab308 45%,#a16207 80%,#713f12)',
         border: '#b45309', glow: '#eab308', text: '#422006', emoji: '🟡',
         desc: 'For those who want to fail in the most fashionable way possible.',
@@ -465,6 +530,7 @@
       },
       {
         id: 'neon', name: 'Neon Cyber', price: 1.99, label: '$1.99',
+        storeId: '9NXXXXXXXX', // TODO: replace with real Add-on ID from Partner Center
         bg: 'radial-gradient(circle at 38% 32%,#818cf8,#4f46e5 45%,#312e81 80%,#1e1b4b)',
         border: '#4338ca', glow: '#818cf8', text: 'white', emoji: '🔵',
         desc: 'RGB gaming aesthetic. Still a trap. A very stylish trap.',
@@ -472,6 +538,7 @@
       },
       {
         id: 'lava', name: 'Lava Core', price: 1.99, label: '$1.99',
+        storeId: '9NXXXXXXXX', // TODO: replace with real Add-on ID from Partner Center
         bg: 'radial-gradient(circle at 38% 32%,#fdba74,#f97316 45%,#c2410c 80%,#7c2d12)',
         border: '#c2410c', glow: '#f97316', text: 'white', emoji: '🟠',
         desc: 'Hot to the touch. Extremely pressable. Do not press.',
@@ -479,6 +546,7 @@
       },
       {
         id: 'galaxy', name: 'Galaxy Brain', price: 2.99, label: '$2.99',
+        storeId: '9NXXXXXXXX', // TODO: replace with real Add-on ID from Partner Center
         bg: 'radial-gradient(circle at 38% 32%,#c084fc,#9333ea 45%,#581c87 80%,#2e1065)',
         border: '#7e22ce', glow: '#a855f7', text: 'white', emoji: '🟣',
         desc: 'Galaxy brain move: spending $2.99 to not press a button.',
@@ -486,6 +554,7 @@
       },
       {
         id: 'diamond', name: 'Diamond Edition', price: 4.99, label: '$4.99',
+        storeId: '9NXXXXXXXX', // TODO: replace with real Add-on ID from Partner Center
         bg: 'radial-gradient(circle at 38% 32%,#e0f2fe,#7dd3fc 45%,#0284c7 75%,#0c4a6e)',
         border: '#0369a1', glow: '#38bdf8', text: '#0c4a6e', emoji: '💎',
         desc: 'Extremely rare. Extremely valuable. Extremely pressable.',
@@ -493,6 +562,7 @@
       },
       {
         id: 'toxic', name: 'Toxic Waste', price: 0.99, label: '$0.99',
+        storeId: '9NXXXXXXXX', // TODO: replace with real Add-on ID from Partner Center
         bg: 'radial-gradient(circle at 38% 32%,#86efac,#22c55e 45%,#166534 80%,#052e16)',
         border: '#15803d', glow: '#4ade80', text: '#052e16', emoji: '☢️',
         desc: 'Environmentally irresponsible. Still do not press.',
@@ -500,6 +570,7 @@
       },
       {
         id: 'void', name: 'The Void', price: 9.99, label: '$9.99',
+        storeId: '9NXXXXXXXX', // TODO: replace with real Add-on ID from Partner Center
         bg: 'radial-gradient(circle at 38% 32%,#374151,#111827 50%,#030712)',
         border: '#374151', glow: '#6b7280', text: '#9ca3af', emoji: '⚫',
         desc: "The void stares back. And it wants you to press it.",
@@ -507,6 +578,7 @@
       },
       {
         id: 'rainbow', name: 'Rainbow Chaos', price: 3.99, label: '$3.99',
+        storeId: '9NXXXXXXXX', // TODO: replace with real Add-on ID from Partner Center
         bg: 'conic-gradient(from 0deg,#ef4444,#f97316,#eab308,#22c55e,#3b82f6,#8b5cf6,#ef4444)',
         border: '#ffffff', glow: '#ffffff', text: 'white', emoji: '🌈',
         desc: '⚠ Seizure warning. Do not stare. Also do not press.',
@@ -1620,23 +1692,48 @@
       const [purchasing, setPurchasing] = useState(null); // skin id being purchased
       const [processing, setProcessing] = useState(false);
       const [purchased,  setPurchased]  = useState(null); // just-purchased skin id
+      const [storeError, setStoreError] = useState(null); // error message string
 
       const handleBuy = (skin) => {
         if (skin.price === 0) { onEquip(skin.id); return; }
+        setStoreError(null);
         setPurchasing(skin.id);
       };
 
-      const confirmPurchase = (skin) => {
+      const confirmPurchase = async (skin) => {
         setProcessing(true);
+        setStoreError(null);
         sounds.pip();
-        setTimeout(() => {
+
+        // If Microsoft Store context is available, use real IAP
+        if (MSStore.isAvailable() && skin.storeId && skin.storeId !== '9NXXXXXXXX') {
+          const status = await MSStore.purchase(skin.storeId);
           setProcessing(false);
-          setPurchasing(null);
-          setPurchased(skin.id);
-          onPurchase(skin.id);
-          sounds.fanfare();
-          setTimeout(() => setPurchased(null), 2000);
-        }, 1500);
+          if (status === 'succeeded' || status === 'alreadyPurchased') {
+            setPurchasing(null);
+            setPurchased(skin.id);
+            onPurchase(skin.id);
+            sounds.fanfare();
+            setTimeout(() => setPurchased(null), 2000);
+          } else if (status === 'notPurchased') {
+            // User cancelled — just close the sheet silently
+            setPurchasing(null);
+          } else if (status === 'networkError') {
+            setStoreError('Network error. Check your connection and try again.');
+          } else {
+            setStoreError('Purchase failed. Please try again.');
+          }
+        } else {
+          // Fallback: browser / dev mode — simulate purchase (no real charge)
+          setTimeout(() => {
+            setProcessing(false);
+            setPurchasing(null);
+            setPurchased(skin.id);
+            onPurchase(skin.id);
+            sounds.fanfare();
+            setTimeout(() => setPurchased(null), 2000);
+          }, 1200);
+        }
       };
 
       const skinBeingPurchased = purchasing ? SKINS.find(s => s.id === purchasing) : null;
@@ -1812,8 +1909,18 @@
                       should buy a skin for a button you're not supposed to press.
                     </p>
 
+                    {storeError && (
+                      <div style={{
+                        background: '#1c0a0a', border: '1px solid #7f1d1d',
+                        borderRadius: 8, padding: '10px 14px', marginBottom: 16,
+                        color: '#fca5a5', fontSize: 12,
+                      }}>
+                        {storeError}
+                      </div>
+                    )}
+
                     <div style={{ display: 'flex', gap: 10 }}>
-                      <button onClick={() => setPurchasing(null)} style={{
+                      <button onClick={() => { setPurchasing(null); setStoreError(null); }} style={{
                         flex: 1, padding: 12, background: 'none',
                         border: '1px solid #374151', borderRadius: 10,
                         color: '#9ca3af', fontSize: 14, fontWeight: 700, cursor: 'pointer',
@@ -1823,7 +1930,7 @@
                         background: 'linear-gradient(135deg,#1d4ed8,#2563eb)',
                         border: 'none', borderRadius: 10,
                         color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer',
-                      }}>Buy · {skinBeingPurchased.label}</button>
+                      }}>{storeError ? 'Try Again' : `Buy · ${skinBeingPurchased.label}`}</button>
                     </div>
                   </>
                 )}
@@ -1851,6 +1958,28 @@
       );
 
       const currentSkin = SKINS.find(s => s.id === currentSkinId) || SKINS[0];
+
+      // On mount: restore purchases from Microsoft Store
+      useEffect(() => {
+        if (!MSStore.isAvailable()) return;
+        const paidSkins = SKINS.filter(s => s.storeId && s.storeId !== '9NXXXXXXXX');
+        if (!paidSkins.length) return;
+        const storeIds = paidSkins.map(s => s.storeId);
+        MSStore.getOwnedStoreIds(storeIds).then(owned => {
+          if (!owned.size) return;
+          setOwnedSkins(prev => {
+            const next = [...prev];
+            paidSkins.forEach(s => {
+              if (owned.has(s.storeId) && !next.includes(s.id)) next.push(s.id);
+            });
+            if (next.length !== prev.length) {
+              localStorage.setItem('dptb_owned_skins', JSON.stringify(next));
+              return next;
+            }
+            return prev;
+          });
+        });
+      }, []);
 
       const handlePurchase = useCallback((skinId) => {
         setOwnedSkins(prev => {
