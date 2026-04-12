@@ -20,7 +20,7 @@
   <Identity
     Name="Aragorn102.DontTouchThisButton"
     Publisher="CN=1DEBC1BC-F7E2-41EF-AD3E-0C5D0B5E5C65"
-    Version="1.0.0.0"
+    Version="1.0.2.0"
     ProcessorArchitecture="neutral" />
 
   <mp:PhoneIdentity
