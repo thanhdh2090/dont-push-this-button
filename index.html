@@ -1150,6 +1150,12 @@
             Get it on Microsoft Store
           </a>
 
+          {/* ── Version label ── */}
+          <div style={{
+            position: 'absolute', bottom: 10, right: 16, zIndex: 25,
+            color: '#374151', fontSize: 10, fontFamily: 'monospace', userSelect: 'none',
+          }}>v1.0.2</div>
+
           {/* ── Red tint tăng dần theo thời gian ── */}
           {redTint > 0 && (
             <div className="red-tint-layer" style={{ opacity: redTint * 0.7 }} />
